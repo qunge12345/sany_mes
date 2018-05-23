@@ -27,8 +27,8 @@ class TransportOrderManager(object):
         '''
         reqUri = self._reqOrderPath + orderName
         postData = tOrder.encode().encode('utf-8')
-        # print(reqUri)
-        # print(postData)
+        self._log.info(reqUri)
+        self._log.info(postData)
         req = request.Request(url = reqUri, data = postData, method = 'POST')
         r = request.urlopen(req).read()
         self._log.info(r.decode('utf-8'))
@@ -53,11 +53,11 @@ class TransportOrderManager(object):
         reqUri = self._reqVehiclePath + vehicle + '/withdrawal'
         reqParam = '?immediate=%s&disableVehicle=%s' % (str(immediate).lower(), str(disableVehicle).lower())
         reqUri = reqUri + reqParam
-        print(reqUri)
-        print(postData)
-        # req = request.Request(url = reqUri, method = 'POST')
-        # r = request.urlopen(req).read()
-        # self._log.info(r.decode('utf-8'))
+        # print(reqUri)
+        # print(postData)
+        req = request.Request(url = reqUri, method = 'POST')
+        r = request.urlopen(req).read()
+        self._log.info(r.decode('utf-8'))
 
     
 

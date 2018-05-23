@@ -1,0 +1,29 @@
+{
+    "servers" :
+    [
+        {
+            "ip" : "127.0.0.1",
+            "port" : 11111,
+            "location" : "Location-0003",
+            "is_emergency" : true
+        },
+        {
+            "ip" : "127.0.0.1",
+            "port" : 11112,
+            "location" : "Location-0004",
+            "is_emergency" : false
+        }
+    ],
+    "matrix_data" :
+    [
+        {
+            "key" : "haha",
+            "value" : "Location-0001"
+        },
+        {
+            "key" : "aaa",
+            "value" : "Location-0002"
+        }
+    ],
+    "basket_home" : "Location-0001"
+}

@@ -18,7 +18,7 @@ class TransportOrder(object):
         # _log must be defined for the decorator mb_default_catch_exception
         self._log = utils.logger().getLogger(logname)
         self._order = {
-            "deadline"      : (datetime.datetime.now() + datetime.timedelta(days = 1)).isoformat() + 'Z',
+            "deadline"      : (datetime.datetime.now() + datetime.timedelta(days = 1) - datetime.timedelta(hours = 8)).isoformat() + 'Z',
             "destinations"  : [],
             "dependencies"  : [],
             "properties"    : []
@@ -38,12 +38,12 @@ class TransportOrder(object):
     @accepts.mb_accepts(datetime.datetime)
     def setDeadline(self, deadline = None):
         '''
-        concrete a ISO8601 time. 
-        deadline is optional
+        concrete a ISO8601 time with 'Z' !!!
+        deadline is required !!!
         '''
         if deadline is None:
             deadline = datetime.datetime.now()
-        self._order["deadline"] = deadline.isoformat() + 'Z'
+        self._order["deadline"] = (deadline - datetime.timedelta(hours = 8)).isoformat() + 'Z'
 
 
     @utils.mb_default_catch_exception
@@ -92,6 +92,9 @@ class TransportOrder(object):
     @staticmethod
     @accepts.accepts(str, str)
     def createProterty(key = "undefine", value = ""):
+        '''
+        create a proterty with specified format
+        '''
         return { "key" : key, "value" : value}
 
     @staticmethod

@@ -1,0 +1,87 @@
+import socket
+import threading
+import time
+import datetime
+import os
+import json
+import redis
+
+import utils
+from trans_order import TransportOrder
+from trans_order_manager import TransportOrderManager
+
+
+
+def main():
+    log = utils.logger().getLogger('MES')
+    conFile = os.path.abspath(os.path.join(os.getcwd(), 'config.json'))
+    conf = {}
+    tom = TransportOrderManager(serverIP = "127.0.0.1", serverPort = 55200)
+    r = redis.StrictRedis(host = '127.0.0.1', port = 6379, db = 0)
+
+    # get config file
+    try:          
+        with open(conFile, 'r') as f:
+            conf = json.load(f)
+    except:
+        with open(conFile, 'a') as f:
+            log.critical('%s is illegal' % conFile)
+            f.write('\n******************check ERROR in this file, then delete this line******************')
+    
+
+    # tcp client thread:
+    def clientThread(serverIP, serverPort):
+        myconf = conf.copy()
+        thisConf = [x for x in myconf.get('servers',[]) if x.get('ip') == serverIP and x.get('port') == serverPort][0]
+        startLoc = thisConf.get('location')
+        is_emc = thisConf.get('is_emergency')
+        tcpClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        log.info('socket---%s' % tcpClientSocket)
+        try:
+            tcpClientSocket.connect((serverIP, serverPort))
+            while True:
+                recvData = tcpClientSocket.recv(1024)
+                recvStr = recvData.decode('utf-8')
+                destList = [x.get('value')  for x in myconf.get('matrix_data',[]) if x.get('key') == recvStr]
+                dest = destList[0] if len(destList) > 0 else None
+                if dest is not None:
+                    torder = TransportOrder()
+                    torder.addDestination(location = startLoc, operation = 'load')
+                    torder.addDestination(location = dest, operation = 'unload')
+                    if True == is_emc:
+                        torder.setDeadline(datetime.datetime.now())
+                    tom.sendOrder(torder, ('established_at_%s' % datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
+
+        finally:
+            tcpClientSocket.close()
+
+
+    # run listening
+    for server in conf.get("servers",[]):
+        serverAddr = (server.get('ip'), server.get('port'))
+        mt = threading.Thread(target = clientThread, name = 'client %s:%d' % serverAddr , args = serverAddr)
+        mt.setDaemon(True)
+        mt.start()
+
+    # for special work
+    locHome = conf.get('basket_home')
+    p = r.pubsub()
+    p.subscribe("TAKE_BASKET_HOME")    
+
+    for item in p.listen():
+        bmsg = item.get('data',b'')
+        if isinstance(bmsg, bytes) and item.get('channel',b'') == b'TAKE_BASKET_HOME': 
+            msg = json.loads(bmsg.decode()) 
+            torder = TransportOrder()
+            torder.addDestination(location = msg.get('location'), operation = 'load')
+            torder.addDestination(location = locHome, operation = 'unload')
+            torder.setIntendedVehicle(msg.get('vehicle'))
+            torder.setDeadline(datetime.datetime.now() - datetime.timedelta(hours = 1))
+            tom.sendOrder(torder, ('take_home_at_%s' % datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
+
+    # sleep
+    while True:
+        time.sleep(10)
+
+if __name__ == '__main__':
+    main()
