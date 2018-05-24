@@ -4,26 +4,34 @@
         {
             "ip" : "127.0.0.1",
             "port" : 11111,
-            "location" : "Location-0003",
+            "location" : "L2",
             "is_emergency" : true
         },
         {
             "ip" : "127.0.0.1",
             "port" : 11112,
-            "location" : "Location-0004",
+            "location" : "L3",
             "is_emergency" : false
         }
     ],
     "matrix_data" :
     [
         {
-            "key" : "haha",
-            "value" : "Location-0001"
+            "key" : "a4",
+            "value" : "L4"
         },
         {
-            "key" : "aaa",
-            "value" : "Location-0002"
+            "key" : "a5",
+            "value" : "L5"
+        },
+        {
+            "key" : "a6",
+            "value" : "L6"
+        },
+        {
+            "key" : "a7",
+            "value" : "L7"
         }
     ],
-    "basket_home" : "Location-0001"
+    "basket_home" : "L8"
 }

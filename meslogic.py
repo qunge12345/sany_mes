@@ -35,25 +35,29 @@ def main():
         thisConf = [x for x in myconf.get('servers',[]) if x.get('ip') == serverIP and x.get('port') == serverPort][0]
         startLoc = thisConf.get('location')
         is_emc = thisConf.get('is_emergency')
-        tcpClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        log.info('socket---%s' % tcpClientSocket)
-        try:
-            tcpClientSocket.connect((serverIP, serverPort))
-            while True:
-                recvData = tcpClientSocket.recv(1024)
-                recvStr = recvData.decode('utf-8')
-                destList = [x.get('value')  for x in myconf.get('matrix_data',[]) if x.get('key') == recvStr]
-                dest = destList[0] if len(destList) > 0 else None
-                if dest is not None:
-                    torder = TransportOrder()
-                    torder.addDestination(location = startLoc, operation = 'load')
-                    torder.addDestination(location = dest, operation = 'unload')
-                    if True == is_emc:
-                        torder.setDeadline(datetime.datetime.now())
-                    tom.sendOrder(torder, ('established_at_%s' % datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
+        while True:            
+            try:
+                tcpClientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                log.info('socket---%s' % tcpClientSocket)
+                tcpClientSocket.connect((serverIP, serverPort))
+                while True:
+                    recvData = tcpClientSocket.recv(1024)
+                    recvStr = recvData.decode('utf-8')
+                    destList = [x.get('value')  for x in myconf.get('matrix_data',[]) if x.get('key') == recvStr]
+                    dest = destList[0] if len(destList) > 0 else None
+                    if dest is not None:
+                        torder = TransportOrder()
+                        torder.addDestination(location = startLoc, operation = 'load')
+                        torder.addDestination(location = dest, operation = 'unload')
+                        if True == is_emc:
+                            torder.setDeadline(datetime.datetime.now())
+                        tom.sendOrder(torder, ('established_at_%s' % datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
 
-        finally:
-            tcpClientSocket.close()
+            except Exception as e:
+                log.error(e)
+            finally:
+                tcpClientSocket.close()
+                time.sleep(5)
 
 
     # run listening
