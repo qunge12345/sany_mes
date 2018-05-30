@@ -43,18 +43,19 @@ def main():
                 while True:
                     recvData = tcpClientSocket.recv(1024)
                     recvStr = recvData.decode('utf-8')
-                    destList = [x.get('value')  for x in myconf.get('matrix_data',[]) if x.get('key') == recvStr]
+                    destList = [x for x in myconf.get('matrix_data',[]) if x.get('key') == recvStr]
                     dest = destList[0] if len(destList) > 0 else None
                     if dest is not None:
                         torder = TransportOrder()
                         torder.addDestination(location = startLoc, operation = 'load')
-                        torder.addDestination(location = dest, operation = 'unload')
+                        torder.addDestination(location = dest.get('fullP'), operation = 'unload')
+                        torder.addDestination(location = dest.get('emptyP'), operation = 'see')
                         if True == is_emc:
                             torder.setDeadline(datetime.datetime.now())
                         tom.sendOrder(torder, ('established_at_%s' % datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
 
             except Exception as e:
-                log.error(e)
+                log.error(str(e) + serverIP + ":" + str(serverPort))
             finally:
                 tcpClientSocket.close()
                 time.sleep(5)
@@ -78,7 +79,7 @@ def main():
             msg = json.loads(bmsg.decode()) 
             torder = TransportOrder()
             torder.addDestination(location = msg.get('location'), operation = 'load')
-            torder.addDestination(location = locHome, operation = 'unload')
+            torder.addDestination(location = locHome, operation = 'drop')
             torder.setIntendedVehicle(msg.get('vehicle'))
             torder.setDeadline(datetime.datetime.now() - datetime.timedelta(hours = 1))
             tom.sendOrder(torder, ('take_home_at_%s' % datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))

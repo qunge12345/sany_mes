@@ -18,19 +18,23 @@
     [
         {
             "key" : "a4",
-            "value" : "L4"
+            "fullP" : "L4",
+            "emptyP" : "L9"
         },
         {
             "key" : "a5",
-            "value" : "L5"
+            "fullP" : "L5",
+            "emptyP" : "L9"
         },
         {
             "key" : "a6",
-            "value" : "L6"
+            "fullP" : "L6",
+            "emptyP" : "L9"
         },
         {
             "key" : "a7",
-            "value" : "L7"
+            "fullP" : "L7",
+            "emptyP" : "L9"
         }
     ],
     "basket_home" : "L8"
