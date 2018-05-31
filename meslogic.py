@@ -48,8 +48,13 @@ def main():
                     if dest is not None:
                         torder = TransportOrder()
                         torder.addDestination(location = startLoc, operation = 'load')
-                        torder.addDestination(location = dest.get('fullP'), operation = 'unload')
-                        torder.addDestination(location = dest.get('emptyP'), operation = 'see')
+                        if dest.get('fullP') != '':
+                            torder.addDestination(location = dest.get('fullP'), operation = 'unload')
+                            if dest.get('emptyP') != '':
+                                torder.addDestination(location = dest.get('emptyP'), operation = 'see')
+                        else:
+                            torder.addDestination(location = conf.get('basket_home'), operation = 'drop')
+                            
                         if True == is_emc:
                             torder.setDeadline(datetime.datetime.now())
                         tom.sendOrder(torder, ('established_at_%s' % datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
