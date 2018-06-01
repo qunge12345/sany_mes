@@ -41,8 +41,13 @@ def main():
                 log.info('socket---%s' % tcpClientSocket)
                 tcpClientSocket.connect((serverIP, serverPort))
                 while True:
-                    recvData = tcpClientSocket.recv(1024)
-                    recvStr = recvData.decode('utf-8')
+                    recvData = tcpClientSocket.recv(15)
+                    try:
+                        recvStr = recvData.decode('utf-8')[:8]
+                    except Exception as e:
+                        # receive first responce
+                        log.error('decode failed ' + str(e))
+                        continue
                     destList = [x for x in myconf.get('matrix_data',[]) if x.get('key') == recvStr]
                     dest = destList[0] if len(destList) > 0 else None
                     if dest is not None:
