@@ -82,8 +82,9 @@ def main():
         bmsg = item.get('data',b'')
         if isinstance(bmsg, bytes) and item.get('channel',b'') == b'TAKE_BASKET_HOME': 
             msg = json.loads(bmsg.decode()) 
+            loc = 'L' + msg.get('location')[2:]
             torder = TransportOrder()
-            torder.addDestination(location = msg.get('location'), operation = 'load')
+            torder.addDestination(location = loc, operation = 'load')
             torder.addDestination(location = locHome, operation = 'drop')
             torder.setIntendedVehicle(msg.get('vehicle'))
             torder.setDeadline(datetime.datetime.now() - datetime.timedelta(hours = 1))
