@@ -17,7 +17,7 @@
     "matrix_data" :
     [
         {
-            "key" : "a4",
+            "key" : "12345678",
             "fullP" : "L4",
             "emptyP" : "L9"
         },
@@ -37,5 +37,5 @@
             "emptyP" : "L9"
         }
     ],
-    "basket_home" : "L8"
+    "basket_home" : ["L8", "L9"]
 }

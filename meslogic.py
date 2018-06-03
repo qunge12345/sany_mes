@@ -42,6 +42,7 @@ def main():
                 tcpClientSocket.connect((serverIP, serverPort))
                 while True:
                     recvData = tcpClientSocket.recv(15)
+                    log.info(serverIP + " receive matrix key: " + str(recvData))
                     try:
                         recvStr = recvData.decode('utf-8')[:8]
                     except Exception as e:
@@ -80,6 +81,8 @@ def main():
 
     # for special work
     locHome = conf.get('basket_home')
+    if not isinstance(locHome, list):
+        log.error('basket_home is not a location list but ' + str(type(locHome)))        
     p = r.pubsub()
     p.subscribe("TAKE_BASKET_HOME")    
 
@@ -90,7 +93,10 @@ def main():
             loc = 'L' + msg.get('location')[2:]
             torder = TransportOrder()
             torder.addDestination(location = loc, operation = 'load')
-            torder.addDestination(location = locHome, operation = 'drop')
+            if 'Vehicle-01' == msg.get('vehicle'):
+                torder.addDestination(location = locHome[0], operation = 'drop')
+            elif 'Vehicle-02' == msg.get('vehicle'):
+                torder.addDestination(location = locHome[1], operation = 'drop')                
             torder.setIntendedVehicle(msg.get('vehicle'))
             torder.setDeadline(datetime.datetime.now() - datetime.timedelta(hours = 1))
             tom.sendOrder(torder, ('take_home_at_%s' % datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
