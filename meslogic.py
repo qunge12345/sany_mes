@@ -42,7 +42,10 @@ def main():
                 tcpClientSocket.setblocking(True)
                 tcpClientSocket.connect((serverIP, serverPort))
                 while True:
+                    time.sleep(0.01)
                     recvData = tcpClientSocket.recv(15)
+                    if recvData == b'':
+                        break
                     log.info(serverIP + " receive matrix key: " + str(recvData))
                     try:
                         recvStr = recvData.decode('utf-8')[:8]
