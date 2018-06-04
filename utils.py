@@ -1,5 +1,6 @@
 import os   
-import logging  
+import logging
+import logging.handlers
 import inspect
 import socket
 import time
@@ -31,24 +32,34 @@ class logger(Singleton):
             logging.basicConfig(level=logging.INFO,  
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M:%S',  
-                        filename=os.path.join(dirpath, "MES-SANYI_" + time.strftime('%Y-%m-%d_%H-%M-%S',time.localtime(time.time())) + ".log"),  
+                        # filename=os.path.join(dirpath, "MES-SANYI_" + time.strftime('%Y-%m-%d_%H-%M-%S',time.localtime(time.time())) + ".log"),  
                         filemode='w') 
                         
-            # make a Handler to sys.stderr  
-            console = logging.StreamHandler()  
-            console.setLevel(logging.INFO)  
-            # set format
-            formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')  
-            console.setFormatter(formatter)  
-            # add console handler to root logger  
-            logging.getLogger('').addHandler(console)
+            ## make a Handler to sys.stderr
+            # console = logging.StreamHandler()
+            # console.setLevel(logging.INFO)
+            # # set format
+            # formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+            # console.setFormatter(formatter)
+            # # add console handler to root logger
+            # logging.getLogger('').addHandler(console)
+
+            # rotating handler
+            # rHandler = logging.handlers.RotatingFileHandler(filename = os.path.join(dirpath, "MES-SANYI_RT.log"), maxBytes = 1 * 1024 * 1024, backupCount = 5) # 1M
+            rHandler = logging.handlers.TimedRotatingFileHandler(filename = os.path.join(dirpath, "MES-SANYI_RT.log"), when = 'S', interval = 3600, backupCount = 100)  # 3600 seconds == 1 hours
+            rHandler.suffix = '%Y-%m-%d_%H-%M-%S' + ".log"
+            rHandler.setLevel(logging.INFO)
+            rFormatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+            rHandler.setFormatter(rFormatter)
+            logging.getLogger('').addHandler(rHandler)
+
             logger.logger_initialized = True
 
     def getLogger(self, name='servicelog'):
         if not isinstance(name, str):
             raise TypeError('logger name must be a string')
         # print('create logger \'' + name + '\' at time: ' + time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
-        return logging.getLogger(name)  
+        return logging.getLogger(name)
 
 # field func decorator: catch exception
 def mb_default_catch_exception(origin_func):
