@@ -59,7 +59,9 @@ def main():
                             if dest.get('emptyP') != '':
                                 torder.addDestination(location = dest.get('emptyP'), operation = 'see')
                         else:
-                            torder.addDestination(location = conf.get('basket_home'), operation = 'drop')
+                            pass
+                            # need specify a vehicle
+                            # torder.addDestination(location = conf.get('basket_home'), operation = 'drop')
                             
                         if True == is_emc:
                             torder.setDeadline(datetime.datetime.now())
