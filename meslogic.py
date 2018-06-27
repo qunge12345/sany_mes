@@ -19,6 +19,8 @@ def main():
     tom = TransportOrderManager(serverIP = "127.0.0.1", serverPort = 55200)
     r = redis.StrictRedis(host = '127.0.0.1', port = 6379, db = 0)
 
+    r_order_key = "redis_order_key_orderid"
+
     # get config file
     try:          
         with open(conFile, 'r') as f:
@@ -53,6 +55,15 @@ def main():
                         # receive first responce
                         log.error('decode failed: ' + str(e))
                         continue
+
+                    # aviod repetition
+                    r_key = r_order_key.repalce('orderid',recvStr)
+                    r_order = r.get(r_key)
+                    if r_order is None:
+                        r.set(r_key,recvStr,4)
+                    else:
+                        continue
+                        
                     destList = [x for x in myconf.get('matrix_data',[]) if x.get('key') == recvStr]
                     dest = destList[0] if len(destList) > 0 else None
                     if dest is not None:
@@ -69,7 +80,7 @@ def main():
                             
                         if True == is_emc:
                             torder.setDeadline(datetime.datetime.now())
-                        tom.sendOrder(torder, ('established_at_%s' % datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
+                        tom.sendOrder(torder, ('%s_established_at_%s' % (recvStr, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))))
 
             except Exception as e:
                 log.error(str(e) + serverIP + ":" + str(serverPort))
