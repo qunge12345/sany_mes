@@ -24,6 +24,11 @@ class TransportOrder(object):
             "properties"    : []
         }
 
+    def getOrder(self):
+        '''
+        get order data (type: dict)
+        '''
+        return self._order
 
     @utils.mb_default_catch_exception
     @accepts.mb_accepts(str)
@@ -48,7 +53,7 @@ class TransportOrder(object):
 
     @utils.mb_default_catch_exception
     @accepts.mb_accepts(str)
-    def setCategory(self, category = "undefine_category"):
+    def setCategory(self, category = "-"):
         '''
         order category is optional
         '''
@@ -85,8 +90,7 @@ class TransportOrder(object):
         '''
         add transport order dependencies. this is optional
         '''
-        # TODO
-        pass
+        self._order.get("dependencies").extend(dependencies)
 
 
     @staticmethod
