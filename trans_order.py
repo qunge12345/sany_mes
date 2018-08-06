@@ -59,6 +59,14 @@ class TransportOrder(object):
         '''
         self._order["category"] = category
 
+    @utils.mb_default_catch_exception
+    @accepts.mb_accepts(str)
+    def setWrappingSequence(self, wrappingSequence = ""):
+        '''
+        wrapping sequence is optional
+        '''
+        self._order["wrappingSequence"] = wrappingSequence
+
 
     @utils.mb_default_catch_exception
     @accepts.mb_accepts(str, str)    

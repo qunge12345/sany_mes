@@ -81,27 +81,54 @@ class TransportOrderManager(object):
 if __name__ == '__main__':
     import time
     tm = TransportOrderManager()
-    # t = TransportOrder()
-    # t.setDeadline()
-    # t.addDestination("Location-0001","load")
-    # # tm.sendOrder(t, "TOrder-0008")
-    # tm.withdrawOrderByVehicle(immediate=True)
-    t = TransportOrder()
-    t.addDestination("Location WL28","work")
-    t.addDestination("Location WL29","work")
 
-    time.sleep(1)
+    # work and load
+    t = TransportOrder()
+    t.addDestination("Location WL5",'load')
+
     t1 = TransportOrder()
-    t1.addDestination("Location WL30","work")
-    t1.addDestination("Location WL31","work")
-    # t1.addOrderDependencies('pppppppppp', 'ssssssssssss')
+    t1.addDestination("Location WL5","load")
+    t1.addOrderDependencies('transfer_0')
 
     s = OrderSequence()
     s.addTransportOrder(t)
     s.addTransportOrder(t1)
-    s.setCategory('-')
+    s.setCategory('work')
 
-    s.setFailureFatal(False)
-    # tm.sendOrder(t)
-    tm.sendOrderSequence(s, 'hehe2')
+    tm.sendOrderSequence(s, 'work_and_load')
+
+    # trans
+    t = TransportOrder()
+    t.addDestination("Location WL6",'load')
+
+    t1 = TransportOrder()
+    t1.addDestination("Location WL13",'load')
+    t1.addOrderDependencies('work_and_load_1')
+
+    t2 = TransportOrder()
+    t2.addDestination("Location WL13",'load')
+    t2.addOrderDependencies('work_and_unload_1')
+
+    s = OrderSequence()
+    s.addTransportOrder(t)
+    s.addTransportOrder(t1)
+    s.addTransportOrder(t2)
+    s.setCategory('trans')
+
+    tm.sendOrderSequence(s, 'transfer')
+
+    # work and unload
+    t = TransportOrder()
+    t.addDestination("Location WL12",'load')
+
+    t1 = TransportOrder()
+    t1.addDestination("Location WL12","unload")
+    t1.addOrderDependencies('transfer_1')
+
+    s = OrderSequence()
+    s.addTransportOrder(t)
+    s.addTransportOrder(t1)
+    s.setCategory('work')
+
+    tm.sendOrderSequence(s, 'work_and_unload')
 
