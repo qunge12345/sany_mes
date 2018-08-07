@@ -4,6 +4,7 @@ import logging.handlers
 import inspect
 import socket
 import time
+import traceback
 
 class Singleton(object):
     """singleton class
@@ -67,6 +68,7 @@ def mb_default_catch_exception(origin_func):
         try:
             return origin_func(self, *args, **kwargs)
         except Exception as e:
+            # self._log.error(traceback.format_exc())
             self._log.error(e)
     return wrapper
 
@@ -76,6 +78,7 @@ def mb_lock_and_catch(origin_func):
         try:
             return origin_func(self, *args, **kwargs)
         except Exception as e:
+            # self._log.error(traceback.format_exc())
             self._log.error(e)
         finally:
             self._lock.release()

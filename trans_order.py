@@ -119,7 +119,7 @@ class TransportOrder(object):
             return False
         return True
         
-
+    @utils.mb_default_catch_exception
     def encode(self):
         '''
         need verify!! use jsonschema TODO

@@ -3,6 +3,8 @@ import accepts
 from urllib import request
 from trans_order import TransportOrder
 from order_sequence import OrderSequence
+from order_sequence_head import OrderSequenceHead
+from order_task import OrderTask
 
 import threading
 
@@ -19,6 +21,7 @@ class TransportOrderManager(object):
         self._reqOrderPath = self._reqPath + 'transportOrders/'
         self._reqVehiclePath = self._reqPath + 'vehicles/'
         self._reqSequencePath = self._reqPath + 'orderSequence/'
+        self._reqTaskPath = self._reqPath + 'orderTask/'
 
 
     @utils.mb_lock_and_catch
@@ -37,18 +40,31 @@ class TransportOrderManager(object):
 
     @utils.mb_lock_and_catch
     @accepts.mb_accepts(OrderSequence, str)
-    def sendOrderSequence(self, ts, sequenceName = 'undefine-sequence'):
+    def sendOrderSequence(self, os, sequenceName = 'undefine-sequence'):
         '''
         send order sequence with specified name.
         '''
         reqUri = self._reqSequencePath + sequenceName
-        postData = ts.encode().encode('utf-8')
+        postData = os.encode().encode('utf-8')
         self._log.info(reqUri)
         self._log.info(postData)
         req = request.Request(url = reqUri, data = postData, method = 'POST')
         r = request.urlopen(req).read()
         self._log.info(r.decode('utf-8'))
 
+    @utils.mb_lock_and_catch
+    @accepts.mb_accepts(OrderTask)
+    def sendOrderTask(self, ot):
+        '''
+        send order task with specified name.
+        '''
+        reqUri = self._reqTaskPath + ot.getName()
+        postData = ot.encode().encode('utf-8')
+        self._log.info(reqUri)
+        self._log.info(postData)
+        req = request.Request(url = reqUri, data = postData, method = 'POST')
+        r = request.urlopen(req).read()
+        self._log.info(r.decode('utf-8'))
         
     @utils.mb_lock_and_catch
     @accepts.mb_accepts(str, bool, bool)
@@ -82,53 +98,36 @@ if __name__ == '__main__':
     import time
     tm = TransportOrderManager()
 
-    # work and load
+    s = OrderSequenceHead()
+    s.setCategory('work')
+    s1 = OrderSequenceHead()
+    s1.setCategory('trans')
+
     t = TransportOrder()
     t.addDestination("Location WL5",'load')
 
     t1 = TransportOrder()
-    t1.addDestination("Location WL5","load")
-    t1.addOrderDependencies('transfer_0')
-
-    s = OrderSequence()
-    s.addTransportOrder(t)
-    s.addTransportOrder(t1)
-    s.setCategory('work')
-
-    tm.sendOrderSequence(s, 'work_and_load')
-
-    # trans
-    t = TransportOrder()
-    t.addDestination("Location WL6",'load')
-
-    t1 = TransportOrder()
-    t1.addDestination("Location WL13",'load')
-    t1.addOrderDependencies('work_and_load_1')
+    t1.addDestination("Location CP4", 'CHARGE')
 
     t2 = TransportOrder()
-    t2.addDestination("Location WL13",'load')
-    t2.addOrderDependencies('work_and_unload_1')
+    t2.addDestination("Location WL7",'load')
 
-    s = OrderSequence()
-    s.addTransportOrder(t)
-    s.addTransportOrder(t1)
-    s.addTransportOrder(t2)
-    s.setCategory('trans')
+    t3 = TransportOrder()
+    t3.addDestination("Location WL12", 'load')
+    t4 = TransportOrder()
+    t4.addDestination("Location WL6", 'load')
+    t5 = TransportOrder()
+    t5.addDestination("Location WL10", 'load')
 
-    tm.sendOrderSequence(s, 'transfer')
+    task = OrderTask()
+    task.setName('lalass')
+    task.addOrderSequenceHead(s)
+    task.addOrderSequenceHead(s1)
+    task.addTransportOrder(t, 0)
+    task.addTransportOrder(t1, 1)
+    task.addTransportOrder(t2, 0, 1)
+    task.addTransportOrder(t3, 0)
+    task.addTransportOrder(t4, 0)
+    task.addTransportOrder(t5, 1, 4)
 
-    # work and unload
-    t = TransportOrder()
-    t.addDestination("Location WL12",'load')
-
-    t1 = TransportOrder()
-    t1.addDestination("Location WL12","unload")
-    t1.addOrderDependencies('transfer_1')
-
-    s = OrderSequence()
-    s.addTransportOrder(t)
-    s.addTransportOrder(t1)
-    s.setCategory('work')
-
-    tm.sendOrderSequence(s, 'work_and_unload')
-
+    tm.sendOrderTask(task)
