@@ -100,6 +100,7 @@ if __name__ == '__main__':
 
     s = OrderSequenceHead()
     s.setCategory('work')
+    s.setFailureFatal(False)
     s1 = OrderSequenceHead()
     s1.setCategory('trans')
 
@@ -117,10 +118,13 @@ if __name__ == '__main__':
     t4 = TransportOrder()
     t4.addDestination("Location WL6", 'load')
     t5 = TransportOrder()
-    t5.addDestination("Location WL10", 'load')
+    t5.addDestination("Location WL10", 'load', TransportOrder.createProterty('bbb','222'))
+    t5.addDestination("Location WL10", 'load', TransportOrder.createProterty('ccc','222'))
+    t5.addDestination("Location WL10", 'load', TransportOrder.createProterty('ddd','222'))
+    t5.addOrderProperties(TransportOrder.createProterty('mmm','111'), TransportOrder.createProterty('ccc','222'))
 
     task = OrderTask()
-    task.setName('lalass')
+    task.setName('laasaa')
     task.addOrderSequenceHead(s)
     task.addOrderSequenceHead(s1)
     task.addTransportOrder(t, 0)
