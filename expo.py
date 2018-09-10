@@ -35,85 +35,85 @@ def main():
 
 
     # first order
-    o1 = createOrder('L6A', 'wait', 'AMB-06')
+    o1 = createOrder('L6A', 'wait', 'AMB-300-1808-06')
     name1 = getNewOrderName(o1)
     tom.sendOrder(o1, name1)
     time.sleep(0.2)
 
-    o2 = createOrder('L7A', 'wait', 'AMB-07')
+    o2 = createOrder('L7A', 'wait', 'AMB-300-1808-07')
     name2 = getNewOrderName(o2)
     tom.sendOrder(o2, name2)
     time.sleep(0.2)
 
-    o3 = createOrder('L5B', 'wait', 'AMB-05')
+    o3 = createOrder('L5B', 'wait', 'AMB-300-1808-05')
     name3 = getNewOrderName(o3)
     tom.sendOrder(o3, name3)
     time.sleep(0.2)
 
-    o4 = createOrder('L4A', 'wait', 'AMB-04')
+    o4 = createOrder('L4A', 'wait', 'AMB-300-1808-04')
     name4 = getNewOrderName(o4)
     tom.sendOrder(o4, name4)
     time.sleep(0.2)
 
-    o1b = createOrder('L6A', 'load', 'AMB-06', (name2,name1))
+    o1b = createOrder('L6A', 'load', 'AMB-300-1808-06', (name2,name1))
     name1b = getNewOrderName(o1b)
     tom.sendOrder(o1b, name1b)
     time.sleep(0.2)
 
-    o2b = createOrder('L7A', 'unload', 'AMB-07', (name1,name2))
+    o2b = createOrder('L7A', 'unload', 'AMB-300-1808-07', (name1,name2))
     name2b = getNewOrderName(o2b)
     tom.sendOrder(o2b, name2b)
     time.sleep(0.2)
 
-    o3b = createOrder('L5B', 'load', 'AMB-05', (name4,name3))
+    o3b = createOrder('L5B', 'load', 'AMB-300-1808-05', (name4,name3))
     name3b = getNewOrderName(o3b)
     tom.sendOrder(o3b, name3b)
     time.sleep(0.2)
 
-    o4b = createOrder('L4A', 'unload', 'AMB-04', (name3,name4))
+    o4b = createOrder('L4A', 'unload', 'AMB-300-1808-04', (name3,name4))
     name4b = getNewOrderName(o4b)
     tom.sendOrder(o4b, name4b)
     time.sleep(0.2)
 
 
     # second order
-    o1 = createOrder('L6B', 'wait', 'AMB-06', name1b)
+    o1 = createOrder('L6B', 'wait', 'AMB-300-1808-06', name1b)
     name1 = getNewOrderName(o1)
     tom.sendOrder(o1, name1)
     time.sleep(0.2)
 
-    o4 = createOrder('L4B', 'wait', 'AMB-04', (name3b, name4b))
+    o4 = createOrder('L4B', 'wait', 'AMB-300-1808-04', (name3b, name4b))
     name4 = getNewOrderName(o4)
     tom.sendOrder(o4, name4)
     time.sleep(0.2)
 
-    o3 = createOrder('L5A', 'wait', 'AMB-05', name3b)
+    o3 = createOrder('L5A', 'wait', 'AMB-300-1808-05', name3b)
     name3 = getNewOrderName(o3)
     tom.sendOrder(o3, name3)
     time.sleep(0.2)
 
-    o2 = createOrder('L7B', 'wait', 'AMB-07', (name1b, name2b))
+    o2 = createOrder('L7B', 'wait', 'AMB-300-1808-07', (name1b, name2b))
     name2 = getNewOrderName(o2)
     tom.sendOrder(o2, name2)
     time.sleep(0.2)
 
-    o1b = createOrder('L6B', 'unload', 'AMB-06', (name4,name1))
+    o1b = createOrder('L6B', 'unload', 'AMB-300-1808-06', (name4,name1))
     name1b = getNewOrderName(o1b)
     tom.sendOrder(o1b, name1b)
     time.sleep(0.2)
 
-    o4b = createOrder('L4B', 'load', 'AMB-04', (name1,name4))
+    o4b = createOrder('L4B', 'load', 'AMB-300-1808-04', (name1,name4))
     name4b = getNewOrderName(o4b)
     tom.sendOrder(o4b, name4b)
     time.sleep(0.2)
 
 
-    o3b = createOrder('L5A', 'unload', 'AMB-05', (name2,name3))
+    o3b = createOrder('L5A', 'unload', 'AMB-300-1808-05', (name2,name3))
     name3b = getNewOrderName(o3b)
     tom.sendOrder(o3b, name3b)
     time.sleep(0.2)
 
-    o2b = createOrder('L7B', 'load', 'AMB-07', (name3,name2))
+    o2b = createOrder('L7B', 'load', 'AMB-300-1808-07', (name3,name2))
     name2b = getNewOrderName(o2b)
     tom.sendOrder(o2b, name2b)
     time.sleep(0.2)
@@ -124,84 +124,84 @@ def main():
     while True:
 
         # first order
-        o1 = createOrder('L6A', 'wait', 'AMB-06', (name4b,name1b))
+        o1 = createOrder('L6A', 'wait', 'AMB-300-1808-06', (name4b,name1b))
         name1 = getNewOrderName(o1)
         tom.sendOrder(o1, name1)
         time.sleep(0.2)
 
-        o2 = createOrder('L7A', 'wait', 'AMB-07', name2b)
+        o2 = createOrder('L7A', 'wait', 'AMB-300-1808-07', name2b)
         name2 = getNewOrderName(o2)
         tom.sendOrder(o2, name2)
         time.sleep(0.2)
 
-        o3 = createOrder('L5B', 'wait', 'AMB-05', (name2b,name3b))
+        o3 = createOrder('L5B', 'wait', 'AMB-300-1808-05', (name2b,name3b))
         name3 = getNewOrderName(o3)
         tom.sendOrder(o3, name3)
         time.sleep(0.2)
 
-        o4 = createOrder('L4A', 'wait', 'AMB-04', name4b)
+        o4 = createOrder('L4A', 'wait', 'AMB-300-1808-04', name4b)
         name4 = getNewOrderName(o4)
         tom.sendOrder(o4, name4)
         time.sleep(0.2)
 
-        o1b = createOrder('L6A', 'load', 'AMB-06', (name2,name1))
+        o1b = createOrder('L6A', 'load', 'AMB-300-1808-06', (name2,name1))
         name1b = getNewOrderName(o1b)
         tom.sendOrder(o1b, name1b)
         time.sleep(0.2)
 
-        o2b = createOrder('L7A', 'unload', 'AMB-07', (name1,name2))
+        o2b = createOrder('L7A', 'unload', 'AMB-300-1808-07', (name1,name2))
         name2b = getNewOrderName(o2b)
         tom.sendOrder(o2b, name2b)
         time.sleep(0.2)
 
-        o3b = createOrder('L5B', 'load', 'AMB-05', (name4,name3))
+        o3b = createOrder('L5B', 'load', 'AMB-300-1808-05', (name4,name3))
         name3b = getNewOrderName(o3b)
         tom.sendOrder(o3b, name3b)
         time.sleep(0.2)
 
-        o4b = createOrder('L4A', 'unload', 'AMB-04', (name3,name4))
+        o4b = createOrder('L4A', 'unload', 'AMB-300-1808-04', (name3,name4))
         name4b = getNewOrderName(o4b)
         tom.sendOrder(o4b, name4b)
         time.sleep(0.2)
 
 
         # second order
-        o1 = createOrder('L6B', 'wait', 'AMB-06', name1b)
+        o1 = createOrder('L6B', 'wait', 'AMB-300-1808-06', name1b)
         name1 = getNewOrderName(o1)
         tom.sendOrder(o1, name1)
         time.sleep(0.2)
 
-        o4 = createOrder('L4B', 'wait', 'AMB-04', (name3b,name4b))
+        o4 = createOrder('L4B', 'wait', 'AMB-300-1808-04', (name3b,name4b))
         name4 = getNewOrderName(o4)
         tom.sendOrder(o4, name4)
         time.sleep(0.2)
 
-        o3 = createOrder('L5A', 'wait', 'AMB-05', name3b)
+        o3 = createOrder('L5A', 'wait', 'AMB-300-1808-05', name3b)
         name3 = getNewOrderName(o3)
         tom.sendOrder(o3, name3)
         time.sleep(0.2)
 
-        o2 = createOrder('L7B', 'wait', 'AMB-07', (name1b,name2b))
+        o2 = createOrder('L7B', 'wait', 'AMB-300-1808-07', (name1b,name2b))
         name2 = getNewOrderName(o2)
         tom.sendOrder(o2, name2)
         time.sleep(0.2)
 
-        o1b = createOrder('L6B', 'unload', 'AMB-06', (name4,name1))
+        o1b = createOrder('L6B', 'unload', 'AMB-300-1808-06', (name4,name1))
         name1b = getNewOrderName(o1b)
         tom.sendOrder(o1b, name1b)
         time.sleep(0.2)
 
-        o4b = createOrder('L4B', 'load', 'AMB-04', (name1,name4))
+        o4b = createOrder('L4B', 'load', 'AMB-300-1808-04', (name1,name4))
         name4b = getNewOrderName(o4b)
         tom.sendOrder(o4b, name4b)
         time.sleep(0.2)
 
-        o3b = createOrder('L5A', 'unload', 'AMB-05', (name2,name3))
+        o3b = createOrder('L5A', 'unload', 'AMB-300-1808-05', (name2,name3))
         name3b = getNewOrderName(o3b)
         tom.sendOrder(o3b, name3b)
         time.sleep(0.2)
 
-        o2b = createOrder('L7B', 'load', 'AMB-07', (name3,name2))
+        o2b = createOrder('L7B', 'load', 'AMB-300-1808-07', (name3,name2))
         name2b = getNewOrderName(o2b)
         tom.sendOrder(o2b, name2b)
         time.sleep(0.2)
