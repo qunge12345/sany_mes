@@ -1,0 +1,6 @@
+{
+    "name" : "aaa",
+    "type" : "XdLoaderVehicle", // XdLoaderVehicle, XdUnloaderVehicle, HxLoaderVehicle, HxUnloaderVehicle
+    "status" : "status",
+    "available_list" : [1,0,...]
+}

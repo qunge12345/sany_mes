@@ -7,7 +7,7 @@ from enum import Enum, unique
 
 import abc
 import threading
-
+import datetime
 
 @unique
 class VehicleType(Enum):
@@ -33,29 +33,39 @@ class Vehicle(metaclass = abc.ABCMeta):
     def __init__(self, vehicleType, vehicleName):
         self._log = utils.logger().getLogger(vehicleName)
         self._lock = threading.Lock()
-        self._status = VehicleStatus.IDLE
-        self._vehicleType = vehicleType # type is used for classified in vehicles
-        self._vehicleName = vehicleName # name is used for update from json string
+        self._status = VehicleStatus.UNVAILABLE
+        self._type = vehicleType # type is used for classified in vehicles
+        self._name = vehicleName # name is used for update from json string
         self._availableList = []
+        self._latastStamp = datetime.datetime.now()
 
     @utils.mb_lock_and_catch
     def updateByJsonString(self, jsonStr):
         tempData = json.loads(jsonStr)
         self._availableList = tempData.get('available_list')
         if tempData.get('status') == 'ERROR':
-            self.setStatus(VehicleStatus.ERROR)
+            self._status = VehicleStatus.ERROR
+        
+        # update the timestamp
+        self._latastStamp = datetime.datetime.now()
 
+    @utils.mb_lock_and_catch
     def setStatus(self, status):
         self._status = status
 
+    @utils.mb_lock_and_catch
     def getStatus(self):
         return self._status
 
     def getName(self):
-        return self._vehicleName
+        return self._name
 
     def getType(self):
-        return self._vehicleType
+        return self._type
+
+    @utils.mb_lock_and_catch
+    def getLatastStamp(self):
+        return self._latastStamp
 
     @abc.abstractmethod
     def getAvailableNum(self):
