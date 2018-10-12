@@ -91,12 +91,18 @@ class TransportOrderManager(object):
         r = request.urlopen(req).read()
         self._log.info(r.decode('utf-8'))
 
-    
-
+    @utils.mb_lock_and_catch
+    @accepts.mb_accepts(str)
+    def getOrderInfo(self, orderName):
+        reqUri = self._reqOrderPath + orderName
+        res = requests.get(reqUri)
+        return res.json()
 
 if __name__ == '__main__':
     import time
     tm = TransportOrderManager()
+
+    tm.getOrderInfo('aaa')
 
     s = OrderSequenceHead()
     s.setCategory('work')

@@ -52,11 +52,11 @@ class EventProcessor(object):
                 continue
             
             queue.popleft()
-            TaskManager.createWork(evt, vehicle)
+            TaskManager.createNormalTask(evt, vehicle)
 
         # reload work
         for vehicle in self._vehicles.getIdleAndFullVehicles():
-            TaskManager.createReload(vehicle)
+            TaskManager.createReloadTask(vehicle)
 
     def scaningHandler(self):
         '''
