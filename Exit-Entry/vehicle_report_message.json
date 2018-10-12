@@ -1,6 +1,6 @@
 {
-    "name" : "aaa",
+    "name" : "an unique name",
     "type" : "XdLoaderVehicle", // XdLoaderVehicle, XdUnloaderVehicle, HxLoaderVehicle, HxUnloaderVehicle
-    "status" : "status",
+    "status" : "status", // same as comm with roboroute
     "available_list" : [1,0,...]
 }

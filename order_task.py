@@ -34,6 +34,10 @@ class OrderTask(object):
     @utils.mb_default_catch_exception
     def getName(self):
         return self._name
+
+    @utils.mb_default_catch_exception
+    def getOrdersNum(self):
+        return len(self._task.get('transports'))
     
 
     @utils.mb_default_catch_exception

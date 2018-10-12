@@ -44,7 +44,7 @@ class VehicleManager(object):
         # establish redis
         r = redis.StrictRedis(host = '127.0.0.1', port = 6379, db = 0)
         p = r.pubsub()
-        p.subscribe("VEHICLE_STATUS_TO_MES")
+        p.subscribe("VEHICLES_TO_MES")
 
         #listening
         for item in p.listen():
@@ -88,14 +88,19 @@ class VehicleManager(object):
 
 
 # from suds.client import Client
-# import zeep
+# from suds.xsd.doctor import Import, ImportDoctor
+import zeep
 if __name__ == '__main__':
+    # imp = Import('http://www.w3.org/2001/XMLSchema',location='http://www.w3.org/2001/XMLSchema.xsd')
+    # imp.filter.add('http://microsoft.com/wsdl/types/')
     # sudsclient = Client('http://ws.webxml.com.cn/WebServices/MobileCodeWS.asmx?wsdl')
+    # sudsclient = Client('http://ws.webxml.com.cn/webservices/ChinaTVprogramWebService.asmx?wsdl',doctor=ImportDoctor(imp),cache=None)
     # sudsclient = Client('http://192.168.2.30:8733/TraQRCodeService?wsdl')
     # print( [method for method in sudsclient.wsdl.services[0].ports[0].methods])
 
     # sudsclient = zeep.Client('http://192.168.2.30:8733/TraQRCodeService?wsdl')
+    zeepclient = zeep.Client('http://ws.webxml.com.cn/WebServices/WeatherWS.asmx?wsdl')
     # print(sudsclient.service.getMobileCodeInfo('13057580045',''))
-    # print( [method for method in sudsclient.wsdl.services.items()])
-    # print('aa')
+    print( [method for method in zeepclient.wsdl.services.items()])
+    print('aa')
     pass

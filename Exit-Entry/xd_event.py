@@ -21,7 +21,6 @@ class EventStatus(Enum):
 
 class XDEvent(object):
 
-    @utils.mb_default_catch_exception
     def __init__(self, jsonStr):
         '''
         there must be a json string to construct the event
