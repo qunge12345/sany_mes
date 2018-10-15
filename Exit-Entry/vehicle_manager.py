@@ -44,17 +44,17 @@ class VehicleManager(object):
         # establish redis
         r = redis.StrictRedis(host = '127.0.0.1', port = 6379, db = 0)
         p = r.pubsub()
-        p.subscribe("VEHICLES_TO_MES")
+        p.psubscribe("SW:VehicleStatus:Carrier:*")
 
         #listening
         for item in p.listen():
             bmsg = item.get('data',b'')
             msg = json.loads(bmsg.decode())
-            vehicleName = msg.get('name')
+            vehicleName = msg.get('vehicle_id') # e.g. Carrier:XdLoaderVehicle:2
 
             if self._vehicles.get(vehicleName) is None:
                 # a new vehicle is added
-                self._vehicles[vehicleName] = locals()[msg.get('type')](vehicleName)
+                self._vehicles[vehicleName] = locals()[vehicleName.split(':')[1]](vehicleName)
 
             self._vehicles[vehicleName].updateByJsonString(msg)
             
@@ -104,6 +104,5 @@ if __name__ == '__main__':
     # print( [method for method in zeepclient.wsdl.services.items()])
     # print('aa')
 
-    vm = VehicleManager()
-    vm.initialize()
-    pass
+    a = 'Carrier:XdLoaderVehicle:2'
+    print(a.split(':')[1])

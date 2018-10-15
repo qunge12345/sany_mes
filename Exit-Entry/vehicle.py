@@ -91,8 +91,8 @@ class XdLoaderVehicle(Vehicle):
     @utils.mb_lock_and_catch
     def updateByJsonString(self, jsonStr):
         tempData = json.loads(jsonStr)
-        self._availableList = tempData.get('available_list')[0:6]
-        if tempData.get('status') == 'ERROR':
+        self._availableList = tempData.get('DI')[0:6]
+        if tempData.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
 
@@ -112,8 +112,8 @@ class XdUnloaderVehicle(Vehicle):
     @utils.mb_lock_and_catch
     def updateByJsonString(self, jsonStr):
         tempData = json.loads(jsonStr)
-        self._availableList = tempData.get('available_list')[0:6]
-        if tempData.get('status') == 'ERROR':
+        self._availableList = tempData.get('DI')[0:6]
+        if tempData.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
 
@@ -134,8 +134,8 @@ class HxLoaderVehicle(Vehicle):
     @utils.mb_lock_and_catch
     def updateByJsonString(self, jsonStr):
         tempData = json.loads(jsonStr)
-        self._availableList = tempData.get('available_list')[0:6]
-        if tempData.get('status') == 'ERROR':
+        self._availableList = tempData.get('DI')[0:6]
+        if tempData.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
 
@@ -155,8 +155,8 @@ class HxUnloaderVehicle(Vehicle):
     @utils.mb_lock_and_catch
     def updateByJsonString(self, jsonStr):
         tempData = json.loads(jsonStr)
-        self._availableList = tempData.get('available_list')[0:6]
-        if tempData.get('status') == 'ERROR':
+        self._availableList = tempData.get('DI')[0:6]
+        if tempData.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
     

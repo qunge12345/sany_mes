@@ -46,7 +46,7 @@ class SlotAdapter(object):
     def checkXdLoading(vehicle, deviceEvent):
         slotRatio = 3    # capability of one device slot / capability of one vehicle slot = 3
         deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0'
-        deviceData = [int(deviceInfo[0]), int(deviceInfo[2])]  # change to [1, 0]
+        deviceData = list(map(int, deviceInfo.split(':')))   # change to [1, 0] 
         deviceLoadNum = sum(deviceData) * slotRatio   # one slot on device , mapped 3 slots on vehicle
         availableVehicleSlotNum = vehicle.getAvailableNum()
         
@@ -68,7 +68,7 @@ class SlotAdapter(object):
     def checkXdUnloading(vehicle, deviceEvent):
         slotRatio = 1
         deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0:0:0'
-        deviceData = [int(deviceInfo[0])]
+        deviceData = list(map(int, deviceInfo.split(':')[:1]))
         deviceUnloadNum = sum(deviceData) * slotRatio
         availableVehicleSlotNum = vehicle.getAvailableNum()
 
@@ -95,7 +95,7 @@ class SlotAdapter(object):
 
 if __name__ == '__main__':
     xdv = XdLoaderVehicle('xiongdiloader')
-    xdv.updateByJsonString('{"available_list":[1,0,1,1,0,0,1,1,1,1],"status":"ERROR"}')
+    xdv.updateByJsonString('{"DI":[1,1,0,1,0,0,1,1,1,1],"status":1}')
     de = XDEvent('{         \
     "event_source":0,\
     "event_status":0,\
