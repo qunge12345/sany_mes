@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
     # sudsclient = zeep.Client('http://192.168.2.30:8733/TraQRCodeService?wsdl')
     zeepclient = zeep.Client('http://ws.webxml.com.cn/WebServices/WeatherWS.asmx?wsdl')
-    # print(sudsclient.service.getMobileCodeInfo('13057580045',''))
+    print(zeepclient.service.getSupportCityDataset(''))
     print( [method for method in zeepclient.wsdl.services.items()])
     print('aa')
     pass
