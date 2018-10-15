@@ -20,7 +20,7 @@ class SlotAdapter(object):
     @staticmethod
     def checkout(vehicle, deviceEvent):
         '''
-        return a list if available pairs, or None
+        return a list of available pairs, or None
         
         the format of list is : [(vehicle_slot_i, device_slot_i),...]
         '''
@@ -94,16 +94,16 @@ class SlotAdapter(object):
 
 
 if __name__ == '__main__':
-    v = XdUnloaderVehicle('xd')
-    v.updateByJsonString('{"available_list":[1,1,1,1,1,1,1,1,1],"status":"ERROR"}')
+    xdv = XdLoaderVehicle('xiongdiloader')
+    xdv.updateByJsonString('{"available_list":[1,0,1,1,0,0,1,1,1,1],"status":"ERROR"}')
     de = XDEvent('{         \
     "event_source":0,\
     "event_status":0,\
     "info": "1:0",\
     "machine_code": "JC-8000A-89",\
     "machine_ip":"192.168.0.222",\
-    "machine_status": 4,\
+    "machine_status": 3,\
     "time": "20180404095212",\
     "version": "1.0"\
     }')
-    SlotAdapter.checkout(v,de)
+    SlotAdapter.checkout(xdv,de)

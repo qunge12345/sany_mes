@@ -45,6 +45,13 @@ class TaskManager(object):
         '''
         a normal task to load or unload
         '''
+        # operation list
+        operationList = SlotAdapter.checkout(vehicle, evt)
+
+        while operationList == None:
+            TaskManager.reloadTask(vehicle)
+            operationList = SlotAdapter.checkout(vehicle, evt)        
+
         vehicle.setStatus(VehicleStatus.PROCEEDING)
 
         # sequence head
@@ -56,14 +63,12 @@ class TaskManager(object):
         sArm.setFailureFatal(False)
         
         # order task
-        name = 'normal_at_' + evt.getMachineName() + '_' + vehicle.getName() \
-        '_' + evt.getType().name + '_' + datetime.datetime.now() 
+        name = 'normal_at_' + evt.getMachineName() + '_' + vehicle.getName() + \
+        '_' + evt.getType().name + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         task = OrderTask()
         task.setName(name)
         task.addOrderSequenceHead(sTrans)
         task.addOrderSequenceHead(sArm)
-        # operation list
-        operationList = SlotAdapter.checkout(vehicle, evt)
 
         # ****difference of vehicle and devices, begin****
         ONE_SIDE_SLOT_NUM = 3
@@ -95,8 +100,8 @@ class TaskManager(object):
         t2.addDestination(t1LocName, 'Wait')
         for v in operationList:
             if v[0] < ONE_SIDE_SLOT_NUM:   #   0,1,2 are the same side !!! this param will be extracted TODO
-                t2.addDestination(t1LocName, 'Grasp', TransportOrder.createProterty(from_str, 'self_' + v[0]), \
-                TransportOrder.createProterty(to_str,'device_' + v[1]))
+                t2.addDestination(t1LocName, 'Grasp', TransportOrder.createProterty(from_str, 'self_' + str(v[0])), \
+                TransportOrder.createProterty(to_str,'device_' + str(v[1])))
 
         t3 = TransportOrder()   # vehicle, depend t2
         needTurn = False
@@ -113,8 +118,8 @@ class TaskManager(object):
         t4.addDestination(t1LocName, 'Wait')
         for v in operationList:
             if v[0] >= ONE_SIDE_SLOT_NUM:   #   0,1,2 are the same side !!! this param will be extracted TODO
-                t4.addDestination(t1LocName, 'Grasp', TransportOrder.createProterty(from_str, 'self_' + v[0]), \
-                TransportOrder.createProterty(to_str,'device_' + v[1]))
+                t4.addDestination(t1LocName, 'Grasp', TransportOrder.createProterty(from_str, 'self_' + str(v[0])), \
+                TransportOrder.createProterty(to_str,'device_' + str(v[1])))
 
         t5 = TransportOrder()   # vehicle, depend t4
         t5.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('orientation', str(orientation)))
@@ -126,7 +131,7 @@ class TaskManager(object):
         task.addTransportOrder(t4, 1, 3)
         task.addTransportOrder(t5, 0, 4)
 
-        tom.sendOrderTask(task)
+        TaskManager.tom.sendOrderTask(task)
         # check 
         while False == TaskManager.isOrderTaskFinished(task):
             time.sleep(5)
@@ -153,8 +158,8 @@ class TaskManager(object):
         t.setIntendedVehicle(vehicle.getName())
         prop = TransportOrder.createProterty('duration', '5000')
         t.addDestination(location, 'Wait', *(prop,))
-        name = 'reload_' + vehicle.getName() + '_' + datetime.datetime.now()
-        tom.sendOrder(t, name)
+        name = 'reload_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        TaskManager.tom.sendOrder(t, name)
 
         # wait for executing
         time.sleep(10)
@@ -169,7 +174,7 @@ class TaskManager(object):
         '''
         return True if order is finished
         '''
-        orderStatus = tom.getOrderInfo(orderName)['state']
+        orderStatus = TaskManager.tom.getOrderInfo(orderName).get('state')
         return orderStatus in ('FINISHED', 'FAILED')
 
     @staticmethod
@@ -177,8 +182,22 @@ class TaskManager(object):
         '''
         return True if order task is finished
         '''
-        orderStatus = tom.getOrderInfo(orderTask.getOrderNameByIndex(orderTask.getOrdersNum() - 1))['state']
+        orderStatus = TaskManager.tom.getOrderInfo(orderTask.getOrderNameByIndex(orderTask.getOrdersNum() - 1)).get('state')
         return orderStatus in ('FINISHED', 'FAILED')
 
 if __name__ == '__main__':
-    pass
+    xdv = XdLoaderVehicle('xiongdiloader')
+    xdv.updateByJsonString('{"available_list":[1,0,1,1,0,0,1,1,1,1],"status":"ERROR"}')
+
+    de = XDEvent('{         \
+    "event_source":0,\
+    "event_status":0,\
+    "info": "1:0",\
+    "machine_code": "JC-8000A-89",\
+    "machine_ip":"192.168.0.222",\
+    "machine_status": 3,\
+    "time": "20180404095212",\
+    "version": "1.0"\
+    }')
+    TaskManager.createNormalTask(de, xdv)
+    time.sleep(5)

@@ -19,8 +19,6 @@ class CommunicationTerminal(object):
     def httpRequestHandler(parameter_list):
         pass
 
-    def reply(self):
-        pass
 
 
 

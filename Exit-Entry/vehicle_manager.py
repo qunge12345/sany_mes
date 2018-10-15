@@ -89,7 +89,7 @@ class VehicleManager(object):
 
 # from suds.client import Client
 # from suds.xsd.doctor import Import, ImportDoctor
-import zeep
+# import zeep
 if __name__ == '__main__':
     # imp = Import('http://www.w3.org/2001/XMLSchema',location='http://www.w3.org/2001/XMLSchema.xsd')
     # imp.filter.add('http://microsoft.com/wsdl/types/')
@@ -99,8 +99,11 @@ if __name__ == '__main__':
     # print( [method for method in sudsclient.wsdl.services[0].ports[0].methods])
 
     # sudsclient = zeep.Client('http://192.168.2.30:8733/TraQRCodeService?wsdl')
-    zeepclient = zeep.Client('http://ws.webxml.com.cn/WebServices/WeatherWS.asmx?wsdl')
-    print(zeepclient.service.getSupportCityDataset(''))
-    print( [method for method in zeepclient.wsdl.services.items()])
-    print('aa')
+    # zeepclient = zeep.Client('http://ws.webxml.com.cn/WebServices/WeatherWS.asmx?wsdl')
+    # print(zeepclient.service.getSupportCityDataset(''))
+    # print( [method for method in zeepclient.wsdl.services.items()])
+    # print('aa')
+
+    vm = VehicleManager()
+    vm.initialize()
     pass

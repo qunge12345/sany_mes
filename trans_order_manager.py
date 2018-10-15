@@ -1,6 +1,7 @@
 import utils
 import accepts
 from urllib import request
+import requests
 from trans_order import TransportOrder
 from order_sequence import OrderSequence
 from order_sequence_head import OrderSequenceHead
@@ -102,7 +103,7 @@ if __name__ == '__main__':
     import time
     tm = TransportOrderManager()
 
-    tm.getOrderInfo('aaa')
+    # tm.getOrderInfo('aaa')
 
     s = OrderSequenceHead()
     s.setCategory('work')
@@ -138,6 +139,6 @@ if __name__ == '__main__':
     task.addTransportOrder(t2, 0, 1)
     task.addTransportOrder(t3, 0)
     task.addTransportOrder(t4, 0)
-    task.addTransportOrder(t5, 1, 4)
+    task.addTransportOrder(t5, 1, 4, 3)
 
     tm.sendOrderTask(task)

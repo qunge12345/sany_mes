@@ -39,13 +39,10 @@ class Vehicle(metaclass = abc.ABCMeta):
         self._availableList = []
         self._latastStamp = datetime.datetime.now()
 
-    @utils.mb_lock_and_catch
+    @abc.abstractmethod
     def updateByJsonString(self, jsonStr):
-        tempData = json.loads(jsonStr)
-        self._availableList = tempData.get('available_list')
-        if tempData.get('status') == 'ERROR':
-            self._status = VehicleStatus.ERROR
-        
+        pass
+
         # update the timestamp
         self._latastStamp = datetime.datetime.now()
 
@@ -91,6 +88,13 @@ class XdLoaderVehicle(Vehicle):
     def getAvailableIndexList(self):
         return [i for i,x in enumerate(self._availableList) if x > 0]
 
+    @utils.mb_lock_and_catch
+    def updateByJsonString(self, jsonStr):
+        tempData = json.loads(jsonStr)
+        self._availableList = tempData.get('available_list')[0:6]
+        if tempData.get('status') == 'ERROR':
+            self._status = VehicleStatus.ERROR
+
 
 class XdUnloaderVehicle(Vehicle):
     
@@ -104,6 +108,13 @@ class XdUnloaderVehicle(Vehicle):
     @utils.mb_lock_and_catch
     def getAvailableIndexList(self):
         return [i for i,x in enumerate(self._availableList) if x == 0]
+
+    @utils.mb_lock_and_catch
+    def updateByJsonString(self, jsonStr):
+        tempData = json.loads(jsonStr)
+        self._availableList = tempData.get('available_list')[0:6]
+        if tempData.get('status') == 'ERROR':
+            self._status = VehicleStatus.ERROR
 
 
 class HxLoaderVehicle(Vehicle):
@@ -120,6 +131,13 @@ class HxLoaderVehicle(Vehicle):
     def getAvailableIndexList(self):
         return [i for i,x in enumerate(self._availableList) if x > 0]
 
+    @utils.mb_lock_and_catch
+    def updateByJsonString(self, jsonStr):
+        tempData = json.loads(jsonStr)
+        self._availableList = tempData.get('available_list')[0:6]
+        if tempData.get('status') == 'ERROR':
+            self._status = VehicleStatus.ERROR
+
 
 class HxUnloaderVehicle(Vehicle):
     
@@ -133,11 +151,19 @@ class HxUnloaderVehicle(Vehicle):
     @utils.mb_lock_and_catch
     def getAvailableIndexList(self):
         return [i for i,x in enumerate(self._availableList) if x == 0]
+
+    @utils.mb_lock_and_catch
+    def updateByJsonString(self, jsonStr):
+        tempData = json.loads(jsonStr)
+        self._availableList = tempData.get('available_list')[0:6]
+        if tempData.get('status') == 'ERROR':
+            self._status = VehicleStatus.ERROR
+
     
 if __name__ == '__main__':
     
     hxv = HxLoaderVehicle('hexin1')
-    hxv.updateByJsonString('{"available_list":[1,0,1,1,0,0,1],"status":"ERROR"}')
+    hxv.updateByJsonString('{"available_list":[1,0,1,1,0,0,1,1,1,1],"status":"ERROR"}')
     print(hxv.getAvailableIndexList())
     print(hxv.getAvailableNum())
     print(hxv.getStatus())

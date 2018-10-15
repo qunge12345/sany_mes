@@ -41,16 +41,17 @@ class OrderTask(object):
     
 
     @utils.mb_default_catch_exception
-    @accepts.mb_accepts(TransportOrder, int, int)
-    def addTransportOrder(self, to, seqIndex = -1, orderIndex = -1):
+    @accepts.mb_accepts(TransportOrder, int)
+    def addTransportOrder(self, to, seqIndex, *orderIndex):
         '''
         there is at least one transport order in a task
         '''
-        if (-1 != seqIndex):
+        if seqIndex >= 0:
             to.setWrappingSequence(self.getSequenceNameByIndex(seqIndex))
 
-        if (-1 != orderIndex):
-            to.addOrderDependencies(self.getOrderNameByIndex(orderIndex))
+        if len(orderIndex) > 0:
+            for index in orderIndex:
+                to.addOrderDependencies(self.getOrderNameByIndex(index))
 
         self._task.get('transports').append(to.getOrder())
 
