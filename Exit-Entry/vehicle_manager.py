@@ -44,7 +44,7 @@ class VehicleManager(object):
         # establish redis
         r = redis.StrictRedis(host = '127.0.0.1', port = 6379, db = 0)
         p = r.pubsub()
-        p.psubscribe("SW:VehicleStatus:Carrier:*")
+        p.psubscribe("SW:VehicleStatus:Carrier_*")
 
         #listening
         for item in p.listen():
@@ -55,9 +55,9 @@ class VehicleManager(object):
 
                 if self._vehicles.get(vehicleName) is None:
                     # a new vehicle is added
-                    self._vehicles[vehicleName] = locals()[vehicleName.split(':')[1]](vehicleName)
+                    self._vehicles[vehicleName] = globals()[vehicleName.split('_')[1]](vehicleName)
 
-                self._vehicles[vehicleName].updateByJsonString(msg)
+                self._vehicles[vehicleName].updateByInfo(msg)
             
 
     def maintenanceHandler(self):
@@ -91,3 +91,6 @@ class VehicleManager(object):
 if __name__ == '__main__':
     vm = VehicleManager()
     vm.initialize()
+    import time
+    while True:
+        time.sleep(1)

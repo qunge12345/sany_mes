@@ -40,7 +40,7 @@ class Vehicle(metaclass = abc.ABCMeta):
         self._latastStamp = datetime.datetime.now()
 
     @abc.abstractmethod
-    def updateByJsonString(self, jsonStr):
+    def updateByInfo(self, info):
         pass
 
         # update the timestamp
@@ -89,10 +89,9 @@ class XdLoaderVehicle(Vehicle):
         return [i for i,x in enumerate(self._availableList) if x > 0]
 
     @utils.mb_lock_and_catch
-    def updateByJsonString(self, jsonStr):
-        tempData = json.loads(jsonStr)
-        self._availableList = tempData.get('DI')[0:6]
-        if tempData.get('dispatch_state') == 2: # ERROR == 2
+    def updateByInfo(self, info):
+        self._availableList = info.get('DI')[0:6]
+        if info.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
 
@@ -110,11 +109,12 @@ class XdUnloaderVehicle(Vehicle):
         return [i for i,x in enumerate(self._availableList) if x == 0]
 
     @utils.mb_lock_and_catch
-    def updateByJsonString(self, jsonStr):
-        tempData = json.loads(jsonStr)
-        self._availableList = tempData.get('DI')[0:6]
-        if tempData.get('dispatch_state') == 2: # ERROR == 2
+    def updateByInfo(self, info):
+        self._availableList = list(map(int, info.get('DI')))
+        if info.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
+
+        # print(self._availableList)
 
 
 class HxLoaderVehicle(Vehicle):
@@ -132,10 +132,9 @@ class HxLoaderVehicle(Vehicle):
         return [i for i,x in enumerate(self._availableList) if x > 0]
 
     @utils.mb_lock_and_catch
-    def updateByJsonString(self, jsonStr):
-        tempData = json.loads(jsonStr)
-        self._availableList = tempData.get('DI')[0:6]
-        if tempData.get('dispatch_state') == 2: # ERROR == 2
+    def updateByInfo(self, info):
+        self._availableList = info.get('DI')[0:6]
+        if info.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
 
@@ -153,17 +152,16 @@ class HxUnloaderVehicle(Vehicle):
         return [i for i,x in enumerate(self._availableList) if x == 0]
 
     @utils.mb_lock_and_catch
-    def updateByJsonString(self, jsonStr):
-        tempData = json.loads(jsonStr)
-        self._availableList = tempData.get('DI')[0:6]
-        if tempData.get('dispatch_state') == 2: # ERROR == 2
+    def updateByInfo(self, info):
+        self._availableList = info.get('DI')[0:6]
+        if info.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
     
 if __name__ == '__main__':
     
     hxv = HxLoaderVehicle('hexin1')
-    hxv.updateByJsonString('{"available_list":[1,0,1,1,0,0,1,1,1,1],"status":"ERROR"}')
+    hxv.updateByInfo({"DI":[1,0,1,1,0,0,1,1,1,1],"status":"ERROR"})
     print(hxv.getAvailableIndexList())
     print(hxv.getAvailableNum())
     print(hxv.getStatus())

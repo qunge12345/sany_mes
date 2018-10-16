@@ -225,7 +225,7 @@ class TaskManager(object):
 
 if __name__ == '__main__':
     xdv = XdUnloaderVehicle('xiongdiloader')
-    xdv.updateByJsonString('{"DI":[1,1,0,1,1,1,1,1,1,1],"status":"ERROR"}')
+    xdv.updateByInfo({"DI":[1,1,0,1,1,1,1,1,1,1],"status":"ERROR"})
 
     de = XDEvent('{         \
     "event_source":"0",\

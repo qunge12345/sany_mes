@@ -110,7 +110,7 @@ class SlotAdapter(object):
 
 if __name__ == '__main__':
     xdv = XdLoaderVehicle('xiongdiloader')
-    xdv.updateByJsonString('{"DI":[1,1,0,1,0,0,1,1,1,1],"status":1}')
+    xdv.updateByInfo({"DI":[1,1,0,1,0,0,1,1,1,1],"status":1})
     de = XDEvent('{         \
     "event_source":0,\
     "event_status":0,\
