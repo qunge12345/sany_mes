@@ -169,8 +169,8 @@ class TaskManager(object):
 
         t = TransportOrder()
         t.setIntendedVehicle(vehicle.getName())
-        leftDoorDI = '11'
-        rightDoorDI = '12'
+        leftDoorDI = '14'
+        rightDoorDI = '15'
         t.addDestination('Location_WD_Left', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'true'))
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'false'))
         t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '5000'))

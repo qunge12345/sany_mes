@@ -39,15 +39,15 @@ class XDEvent(object):
         self._version = self._data.get('version')
 
         # decide the device type
-        if self._eventSource == 0:  # XiongDi
-            if self._machineStatus == 3:
+        if self._eventSource == '0':  # XiongDi
+            if self._machineStatus == '4':
                 self._deviceType = DeviceType.XD_LOAD
-            elif self._machineStatus == 4:
+            elif self._machineStatus == '5':
                 self._deviceType = DeviceType.XD_UNLOAD
-        elif self._eventSource == 1: # HangXin
-            if self._machineStatus == 3:
+        elif self._eventSource == '1': # HangXin
+            if self._machineStatus == '4':
                 self._deviceType = DeviceType.HX_LOAD
-            elif self._machineStatus == 4:
+            elif self._machineStatus == '5':
                 self._deviceType = DeviceType.HX_UNLOAD
 
         self._status = EventStatus.WAIT

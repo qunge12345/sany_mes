@@ -32,6 +32,8 @@ class EventProcessor(object):
     def pushMessage(self, eventStr):
         # create event by json string
         evt = XDEvent(eventStr)
+        if evt.getType() == DeviceType.UNKNOW:
+            return
         self._queues[evt.getType().value].append(evt)
 
     def scan(self):

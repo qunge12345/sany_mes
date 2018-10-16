@@ -49,14 +49,15 @@ class VehicleManager(object):
         #listening
         for item in p.listen():
             bmsg = item.get('data',b'')
-            msg = json.loads(bmsg.decode())
-            vehicleName = msg.get('vehicle_id') # e.g. Carrier:XdLoaderVehicle:2
+            if isinstance(bmsg, bytes):
+                msg = json.loads(bmsg.decode())
+                vehicleName = msg.get('vehicle_id') # e.g. Carrier:XdLoaderVehicle:2
 
-            if self._vehicles.get(vehicleName) is None:
-                # a new vehicle is added
-                self._vehicles[vehicleName] = locals()[vehicleName.split(':')[1]](vehicleName)
+                if self._vehicles.get(vehicleName) is None:
+                    # a new vehicle is added
+                    self._vehicles[vehicleName] = locals()[vehicleName.split(':')[1]](vehicleName)
 
-            self._vehicles[vehicleName].updateByJsonString(msg)
+                self._vehicles[vehicleName].updateByJsonString(msg)
             
 
     def maintenanceHandler(self):

@@ -42,6 +42,21 @@ class SlotAdapter(object):
 
         return retList
 
+
+    @staticmethod
+    def checkRequirement(deviceEvent):
+        deviceData = []
+        if deviceEvent.getType() == DeviceType.XD_LOAD:
+            slotRatio = 3    # capability of one device slot / capability of one vehicle slot = 3
+            deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0'
+            deviceData = list(map(int, deviceInfo.split(':')))   # change to [1, 0]
+        elif deviceEvent.getType() == DeviceType.XD_UNLOAD:
+            slotRatio = 1
+            deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0:0:0'
+            deviceData = list(map(int, deviceInfo.split(':')[:1]))
+        
+        return deviceData
+
     @staticmethod
     def checkXdLoading(vehicle, deviceEvent):
         slotRatio = 3    # capability of one device slot / capability of one vehicle slot = 3
