@@ -82,6 +82,9 @@ class TaskManager(object):
         if vehicle.getType() in (VehicleType.XD_UNLOADER, VehicleType.HX_UNLOADER):
             from_str = 'to'
             to_str = 'from'
+
+        depth = ''
+        tempI = 0
         # ****difference of vehicle and devices, end****
 
         # transport order
@@ -98,10 +101,15 @@ class TaskManager(object):
 
         t2 = TransportOrder()   # arm, depend t0
         t2.addDestination(t1LocName, 'Wait')
+        if vehicle.getType() == VehicleType.XD_LOADER:
+            tempI = 0
         for v in operationList:
             if v[0] < ONE_SIDE_SLOT_NUM:   #   0,1,2 are the same side !!! this param will be extracted TODO
+                if vehicle.getType() == VehicleType.XD_LOADER:
+                    depth = '_' + str(tempI)
+                    tempI += 1
                 t2.addDestination(t1LocName, 'Grasp', TransportOrder.createProterty(from_str, 'self_' + str(v[0])), \
-                TransportOrder.createProterty(to_str,'device_' + str(v[1])))
+                TransportOrder.createProterty(to_str,'device_' + str(v[1]) + depth))
 
         t3 = TransportOrder()   # vehicle, depend t2
         needTurn = False
@@ -116,10 +124,15 @@ class TaskManager(object):
 
         t4 = TransportOrder()   # arm, depend t3
         t4.addDestination(t1LocName, 'Wait')
+        if vehicle.getType() == VehicleType.XD_LOADER:
+            tempI = 0
         for v in operationList:
             if v[0] >= ONE_SIDE_SLOT_NUM:   #   0,1,2 are the same side !!! this param will be extracted TODO
+                if vehicle.getType() == VehicleType.XD_LOADER:
+                    depth = '_' + str(tempI)
+                    tempI += 1
                 t4.addDestination(t1LocName, 'Grasp', TransportOrder.createProterty(from_str, 'self_' + str(v[0])), \
-                TransportOrder.createProterty(to_str,'device_' + str(v[1])))
+                TransportOrder.createProterty(to_str,'device_' + str(v[1]) + depth))
 
         t5 = TransportOrder()   # vehicle, depend t4
         t5.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('orientation', str(orientation)))
@@ -156,8 +169,20 @@ class TaskManager(object):
 
         t = TransportOrder()
         t.setIntendedVehicle(vehicle.getName())
-        prop = TransportOrder.createProterty('duration', '5000')
-        t.addDestination(location, 'Wait', *(prop,))
+        leftDoorDI = '11'
+        rightDoorDI = '12'
+        t.addDestination('Location_WD_Left', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'true'))
+        t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'false'))
+        t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '5000'))
+        t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'true'))
+        t.addDestination('Location_WD_Right', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'false'))
+        t.addDestination(location, 'Wait', TransportOrder.createProterty('duration', '10000'))
+        t.addDestination('Location_WD_Right', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'true'))
+        t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'false'))
+        t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '5000'))
+        t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'true'))
+        t.addDestination('Location_WD_Left', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'false'))
+
         name = 'reload_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         TaskManager.tom.sendOrder(t, name)
 
@@ -186,18 +211,19 @@ class TaskManager(object):
         return orderStatus in ('FINISHED', 'FAILED')
 
 if __name__ == '__main__':
-    xdv = XdLoaderVehicle('xiongdiloader')
-    xdv.updateByJsonString('{"available_list":[1,0,1,1,0,0,1,1,1,1],"status":"ERROR"}')
+    xdv = XdUnloaderVehicle('xiongdiloader')
+    xdv.updateByJsonString('{"DI":[1,1,0,1,1,1,1,1,1,1],"status":"ERROR"}')
 
     de = XDEvent('{         \
     "event_source":0,\
     "event_status":0,\
-    "info": "1:0",\
+    "info": "1:1",\
     "machine_code": "JC-8000A-89",\
     "machine_ip":"192.168.0.222",\
-    "machine_status": 3,\
+    "machine_status": 4,\
     "time": "20180404095212",\
     "version": "1.0"\
     }')
-    TaskManager.createNormalTask(de, xdv)
+    # TaskManager.createNormalTask(de, xdv)
+    TaskManager.createReloadTask(xdv)
     time.sleep(5)

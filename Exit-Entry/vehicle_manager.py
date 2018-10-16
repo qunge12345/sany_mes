@@ -87,22 +87,6 @@ class VehicleManager(object):
         return None
 
 
-# from suds.client import Client
-# from suds.xsd.doctor import Import, ImportDoctor
-# import zeep
 if __name__ == '__main__':
-    # imp = Import('http://www.w3.org/2001/XMLSchema',location='http://www.w3.org/2001/XMLSchema.xsd')
-    # imp.filter.add('http://microsoft.com/wsdl/types/')
-    # sudsclient = Client('http://ws.webxml.com.cn/WebServices/MobileCodeWS.asmx?wsdl')
-    # sudsclient = Client('http://ws.webxml.com.cn/webservices/ChinaTVprogramWebService.asmx?wsdl',doctor=ImportDoctor(imp),cache=None)
-    # sudsclient = Client('http://192.168.2.30:8733/TraQRCodeService?wsdl')
-    # print( [method for method in sudsclient.wsdl.services[0].ports[0].methods])
-
-    # sudsclient = zeep.Client('http://192.168.2.30:8733/TraQRCodeService?wsdl')
-    # zeepclient = zeep.Client('http://ws.webxml.com.cn/WebServices/WeatherWS.asmx?wsdl')
-    # print(zeepclient.service.getSupportCityDataset(''))
-    # print( [method for method in zeepclient.wsdl.services.items()])
-    # print('aa')
-
-    a = 'Carrier:XdLoaderVehicle:2'
-    print(a.split(':')[1])
+    vm = VehicleManager()
+    vm.initialize()
