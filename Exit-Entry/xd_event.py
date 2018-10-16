@@ -70,6 +70,12 @@ class XDEvent(object):
     def getType(self):
         return self._deviceType
 
+    def getEventSource(self):
+        return self._eventSource
+
+    def getMachineStatus(self):
+        return self._machineStatus
+
         
         
 

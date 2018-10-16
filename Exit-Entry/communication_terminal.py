@@ -7,6 +7,7 @@ import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from event_processor import EventProcessor
 import threading
+from ctypes import *
 
 class CommunicationTerminal(BaseHTTPRequestHandler):
     '''
@@ -16,6 +17,7 @@ class CommunicationTerminal(BaseHTTPRequestHandler):
     def initialize(eventProcessor, loggerName = 'communication terminal'):
         CommunicationTerminal.log = utils.logger().getLogger(loggerName)
         CommunicationTerminal.evtProc = eventProcessor
+        soaplib = cdll.LoadLibrary("./GSoapDll.dll")
 
     def do_POST(self):
         data = self.rfile.read(int(self.headers["content-length"])).decode('utf-8')
@@ -40,14 +42,18 @@ class CommunicationTerminal(BaseHTTPRequestHandler):
 
 
     @staticmethod
-    def reply():
-        pass
+    def typicalSend(evt, success = True):
+        # data = rb'{"data":"{\"event_id\":\"%s\",\"event_info\":\"%s\",\"event_status\":\"%s\",\"machine_code\":\"%s\",\"machine_ip\":\"%s\"}","id" :"","type" : "%s"}' % \
+        # (evt.getMachineStatus(), )
+        CommunicationTerminal.log.info(evt.getMachineName() + '_' + evt.getType().name + ' operate ' + success)
 
 
 if __name__ == '__main__':
-    import time
-    CommunicationTerminal.initialize("i'm wrong")
-    CommunicationTerminal.startServer()
-    while True:
-        time.sleep(1)
-
+    # import time
+    # CommunicationTerminal.initialize("i'm wrong")
+    # CommunicationTerminal.startServer()
+    # while True:
+    #     time.sleep(1)
+    m = 222
+    t = rb'{"data":"{\"event_id\":\"%s\",\"event_info\":\"\",\"ip\":\"192.168.1.12\"}","id" :"","type" : "1"}' % str(m).encode('utf-8')
+    print(t)

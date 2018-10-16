@@ -145,11 +145,19 @@ class TaskManager(object):
         task.addTransportOrder(t5, 0, 4)
 
         TaskManager.tom.sendOrderTask(task)
-        # check 
-        while False == TaskManager.isOrderTaskFinished(task):
-            time.sleep(5)
 
-        # TELL THE DEVICE , GRASP OVER !! TODO
+        time.sleep(10)
+        # check 
+        orderState = TaskManager.getOrderTaskState(name)
+        while orderState not in ('FINISHED', 'FAILED'):
+            time.sleep(2)
+            orderState = TaskManager.getOrderTaskState(name)
+
+        if orderState == 'FINISHED':
+            CommunicationTerminal.typicalSend(evt, True)
+        elif orderState == 'FAILED':
+            CommunicationTerminal.typicalSend(evt, False)
+
 
         vehicle.setStatus(VehicleStatus.IDLE)
 
@@ -189,41 +197,46 @@ class TaskManager(object):
         # wait for executing
         time.sleep(10)
 
-        while False == TaskManager.isOrderFinished(name):
+        orderState = TaskManager.getOrderState(name)
+        while orderState not in ('FINISHED', 'FAILED'):
             time.sleep(5)
+            orderState = TaskManager.getOrderState(name)
+
+        if orderState == 'FINISHED':
+            pass
+        elif orderState == 'FAILED':
+            pass
 
         vehicle.setStatus(VehicleStatus.IDLE)
 
     @staticmethod
-    def isOrderFinished(orderName):
+    def getOrderState(orderName):
         '''
         return True if order is finished
         '''
-        orderStatus = TaskManager.tom.getOrderInfo(orderName).get('state')
-        return orderStatus in ('FINISHED', 'FAILED')
+        return TaskManager.tom.getOrderInfo(orderName).get('state')
 
     @staticmethod
-    def isOrderTaskFinished(orderTask):
+    def getOrderTaskState(orderTask):
         '''
         return True if order task is finished
         '''
-        orderStatus = TaskManager.tom.getOrderInfo(orderTask.getOrderNameByIndex(orderTask.getOrdersNum() - 1)).get('state')
-        return orderStatus in ('FINISHED', 'FAILED')
+        return TaskManager.tom.getOrderInfo(orderTask.getOrderNameByIndex(orderTask.getOrdersNum() - 1)).get('state')
 
 if __name__ == '__main__':
     xdv = XdUnloaderVehicle('xiongdiloader')
     xdv.updateByJsonString('{"DI":[1,1,0,1,1,1,1,1,1,1],"status":"ERROR"}')
 
     de = XDEvent('{         \
-    "event_source":0,\
+    "event_source":"0",\
     "event_status":0,\
     "info": "1:1",\
     "machine_code": "JC-8000A-89",\
     "machine_ip":"192.168.0.222",\
-    "machine_status": 4,\
+    "machine_status": "5",\
     "time": "20180404095212",\
     "version": "1.0"\
     }')
-    # TaskManager.createNormalTask(de, xdv)
-    TaskManager.createReloadTask(xdv)
+    TaskManager.createNormalTask(de, xdv)
+    # TaskManager.createReloadTask(xdv)
     time.sleep(5)
