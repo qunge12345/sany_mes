@@ -17,7 +17,7 @@ class CommunicationTerminal(BaseHTTPRequestHandler):
     def initialize(eventProcessor, loggerName = 'communication terminal'):
         CommunicationTerminal.log = utils.logger().getLogger(loggerName)
         CommunicationTerminal.evtProc = eventProcessor
-        # soaplib = cdll.LoadLibrary("./GSoapDll.dll")
+        soaplib = cdll.LoadLibrary("./GSoapDllx86.dll")
 
     def do_POST(self):
         data = self.rfile.read(int(self.headers["content-length"])).decode('utf-8')

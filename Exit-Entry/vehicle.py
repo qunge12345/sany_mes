@@ -90,7 +90,7 @@ class XdLoaderVehicle(Vehicle):
 
     @utils.mb_lock_and_catch
     def updateByInfo(self, info):
-        self._availableList = info.get('DI')[0:6]
+        self._availableList = list(map(int, info.get('DI')))[2:8]
         if info.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
@@ -110,7 +110,7 @@ class XdUnloaderVehicle(Vehicle):
 
     @utils.mb_lock_and_catch
     def updateByInfo(self, info):
-        self._availableList = list(map(int, info.get('DI')))
+        self._availableList = list(map(int, info.get('DI')))[2:10]
         if info.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
@@ -133,7 +133,7 @@ class HxLoaderVehicle(Vehicle):
 
     @utils.mb_lock_and_catch
     def updateByInfo(self, info):
-        self._availableList = info.get('DI')[0:6]
+        self._availableList = list(map(int, info.get('DI')))[0:6]
         if info.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
@@ -153,7 +153,7 @@ class HxUnloaderVehicle(Vehicle):
 
     @utils.mb_lock_and_catch
     def updateByInfo(self, info):
-        self._availableList = info.get('DI')[0:6]
+        self._availableList = list(map(int, info.get('DI')))
         if info.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
@@ -161,7 +161,7 @@ class HxUnloaderVehicle(Vehicle):
 if __name__ == '__main__':
     
     hxv = HxLoaderVehicle('hexin1')
-    hxv.updateByInfo({"DI":[1,0,1,1,0,0,1,1,1,1],"status":"ERROR"})
+    hxv.updateByInfo({"DI":[True,False,True,True,False,False,True,True,True,True],"status":"ERROR"})
     print(hxv.getAvailableIndexList())
     print(hxv.getAvailableNum())
     print(hxv.getStatus())

@@ -27,6 +27,8 @@ class TaskManager(object):
         '''
         create a thread of normal task
         '''
+        vehicle.setStatus(VehicleStatus.PROCEEDING)
+
         nt = threading.Thread(target = TaskManager.normalTask, name = 'normal_task_at_%s' % evt.getMachineName(), args = (evt, vehicle))
         nt.setDaemon(True)
         nt.start()
@@ -36,6 +38,8 @@ class TaskManager(object):
         '''
         create a thread of reload task
         '''
+        vehicle.setStatus(VehicleStatus.PROCEEDING)
+
         rt = threading.Thread(target = TaskManager.reloadTask, name = 'reload_task_at_%s' % vehicle.getName(), args = (vehicle,))
         rt.setDaemon(True)
         rt.start()
@@ -49,18 +53,16 @@ class TaskManager(object):
         operationList = SlotAdapter.checkout(vehicle, evt)
 
         while operationList == None:
-            TaskManager.reloadTask(vehicle)
-            operationList = SlotAdapter.checkout(vehicle, evt)        
-
-        vehicle.setStatus(VehicleStatus.PROCEEDING)
+            TaskManager.reloadTask(vehicle, False)
+            operationList = SlotAdapter.checkout(vehicle, evt)
 
         # sequence head
         sTrans = OrderSequenceHead()
         sTrans.setIntendedVehicle(vehicle.getName())
-        sTrans.setFailureFatal(False)
+        sTrans.setFailureFatal(True)
         sArm = OrderSequenceHead()
         sArm.setCategory('ARM_passport')
-        sArm.setFailureFatal(False)
+        sArm.setFailureFatal(True)
         
         # order task
         name = 'normal_at_' + evt.getMachineName() + '_' + vehicle.getName() + \
@@ -72,9 +74,11 @@ class TaskManager(object):
 
         # ****difference of vehicle and devices, begin****
         ONE_SIDE_SLOT_NUM = 3
-        if vehicle.getType() in (VehicleType.XD_LOADER, VehicleType.XD_UNLOADER):
+        if vehicle.getType() == VehicleType.XD_LOADER:
             ONE_SIDE_SLOT_NUM = 3
-        elif evt.getType() in (VehicleType.HX_LOADER, VehicleType.HX_UNLOADER):
+        elif vehicle.getType() == VehicleType.XD_UNLOADER:
+            ONE_SIDE_SLOT_NUM = 4
+        elif vehicle.getType() in (VehicleType.HX_LOADER, VehicleType.HX_UNLOADER):
             ONE_SIDE_SLOT_NUM = 3
 
         from_str = 'from'
@@ -162,13 +166,12 @@ class TaskManager(object):
         vehicle.setStatus(VehicleStatus.IDLE)
 
     @staticmethod
-    def reloadTask(vehicle):
+    def reloadTask(vehicle, independent = True):
         '''
         go to reload
 
         TODO: use config file instead of those string !!!
         '''
-        vehicle.setStatus(VehicleStatus.PROCEEDING)
 
         # confirm the location
         location = 'Location_Unload'
@@ -180,15 +183,19 @@ class TaskManager(object):
         leftDoorDI = '14'
         rightDoorDI = '15'
         t.addDestination('Location_WD_Left', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'true'))
+        t.addDestination('Location_WD_Left', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'false'))
         t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '5000'))
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'true'))
+        t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Right', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'false'))
         t.addDestination(location, 'Wait', TransportOrder.createProterty('duration', '10000'))
         t.addDestination('Location_WD_Right', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'true'))
+        t.addDestination('Location_WD_Right', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'false'))
         t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '5000'))
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'true'))
+        t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Left', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'false'))
 
         name = 'reload_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
@@ -207,7 +214,8 @@ class TaskManager(object):
         elif orderState == 'FAILED':
             pass
 
-        vehicle.setStatus(VehicleStatus.IDLE)
+        if independent == True:
+            vehicle.setStatus(VehicleStatus.IDLE)
 
     @staticmethod
     def getOrderState(orderName):
@@ -225,7 +233,7 @@ class TaskManager(object):
 
 if __name__ == '__main__':
     xdv = XdUnloaderVehicle('xiongdiloader')
-    xdv.updateByInfo({"DI":[1,1,0,1,1,1,1,1,1,1],"status":"ERROR"})
+    xdv.updateByInfo({"DI":[True,False,True,True,False,False,True,True,True,True],"status":"ERROR"})
 
     de = XDEvent('{         \
     "event_source":"0",\
@@ -237,6 +245,6 @@ if __name__ == '__main__':
     "time": "20180404095212",\
     "version": "1.0"\
     }')
-    TaskManager.createNormalTask(de, xdv)
-    # TaskManager.createReloadTask(xdv)
+    # TaskManager.createNormalTask(de, xdv)
+    TaskManager.createReloadTask(xdv)
     time.sleep(5)

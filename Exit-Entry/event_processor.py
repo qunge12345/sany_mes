@@ -27,19 +27,33 @@ class EventProcessor(object):
         deque(maxlen = EventProcessor.MAX_LEN), \
         deque(maxlen = EventProcessor.MAX_LEN))
 
-    # deque is thread-safe ?
-    # @utils.mb_lock_and_catch
+    @utils.mb_lock_and_catch
     def pushMessage(self, eventStr):
         # create event by json string
         evt = XDEvent(eventStr)
         if evt.getType() == DeviceType.UNKNOW:
             return
-        self._queues[evt.getType().value].append(evt)
 
+        # get the value of evt type
+        evtTypeValue = evt.getType().value
+
+        # override the out-of-date event
+        for i,e in enumerate(self._queues[evtTypeValue]):
+            if e.getMachineName() == evt.getMachineName():
+                self._queues[evtTypeValue][i] = evt
+                return
+
+        self._queues[evtTypeValue].append(evt)
+
+    @utils.mb_lock_and_catch
     def scan(self):
         '''
         scan the queues and create pairs of vehicle--event
         '''
+        # reload work
+        for vehicle in self._vehicles.getIdleAndFullVehicles():
+            TaskManager.createReloadTask(vehicle)
+
         # normal work
         for queue in self._queues:
             # no event
@@ -55,10 +69,6 @@ class EventProcessor(object):
             
             queue.popleft()
             TaskManager.createNormalTask(evt, vehicle)
-
-        # reload work
-        for vehicle in self._vehicles.getIdleAndFullVehicles():
-            TaskManager.createReloadTask(vehicle)
 
     def scaningHandler(self):
         '''
