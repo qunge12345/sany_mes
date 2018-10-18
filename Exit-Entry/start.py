@@ -11,7 +11,7 @@ if __name__ == '__main__':
     vm.initialize()
     ep = EventProcessor(vm)
     ep.start()
-    CommunicationTerminal.initialize(ep)
+    CommunicationTerminal.setEventProcessor(ep)
     CommunicationTerminal.startServer()
 
     while True:

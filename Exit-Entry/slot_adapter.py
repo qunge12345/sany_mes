@@ -49,19 +49,19 @@ class SlotAdapter(object):
         if deviceEvent.getType() == DeviceType.XD_LOAD:
             slotRatio = 3    # capability of one device slot / capability of one vehicle slot = 3
             deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0'
-            deviceData = list(map(int, deviceInfo.split(':')))   # change to [1, 0]
+            deviceData = [int(deviceInfo) & 1, (int(deviceInfo) >> 1) & 1]   # change to [1, 0]
         elif deviceEvent.getType() == DeviceType.XD_UNLOAD:
             slotRatio = 1
             deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0:0:0'
-            deviceData = list(map(int, deviceInfo.split(':')[:1]))
+            deviceData = [int(deviceInfo) & 1]
         
         return deviceData
 
     @staticmethod
     def checkXdLoading(vehicle, deviceEvent):
         slotRatio = 3    # capability of one device slot / capability of one vehicle slot = 3
-        deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0'
-        deviceData = list(map(int, deviceInfo.split(':')))   # change to [1, 0] 
+        deviceInfo = deviceEvent.getMachineInfo()   # as str: '3'
+        deviceData = [int(deviceInfo) & 1, (int(deviceInfo) >> 1) & 1]   # change to [1, 0] 
         deviceLoadNum = sum(deviceData) * slotRatio   # one slot on device , mapped 3 slots on vehicle
         availableVehicleSlotNum = vehicle.getAvailableNum()
         
@@ -83,7 +83,7 @@ class SlotAdapter(object):
     def checkXdUnloading(vehicle, deviceEvent):
         slotRatio = 1
         deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0:0:0'
-        deviceData = list(map(int, deviceInfo.split(':')[:1]))
+        deviceData = [int(deviceInfo) & 1]
         deviceUnloadNum = sum(deviceData) * slotRatio
         availableVehicleSlotNum = vehicle.getAvailableNum()
 
@@ -112,12 +112,12 @@ if __name__ == '__main__':
     xdv = XdLoaderVehicle('xiongdiloader')
     xdv.updateByInfo({"DI":[True,False,True,True,False,False,True,True,True,True],"status":1})
     de = XDEvent('{         \
-    "event_source":0,\
-    "event_status":0,\
-    "info": "1:0",\
+    "event_source":"0",\
+    "event_status":"0",\
+    "info": "2",\
     "machine_code": "JC-8000A-89",\
     "machine_ip":"192.168.0.222",\
-    "machine_status": 3,\
+    "machine_status": "4",\
     "time": "20180404095212",\
     "version": "1.0"\
     }')

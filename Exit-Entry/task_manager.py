@@ -17,6 +17,7 @@ from trans_order import TransportOrder
 from order_sequence_head import OrderSequenceHead
 from order_task import OrderTask
 from trans_order_manager import TransportOrderManager
+from communication_terminal import CommunicationTerminal, ReplyTaskStatus
 
 class TaskManager(object):
 
@@ -28,6 +29,7 @@ class TaskManager(object):
         create a thread of normal task
         '''
         vehicle.setStatus(VehicleStatus.PROCEEDING)
+        CommunicationTerminal.typicalSend(evt, ReplyTaskStatus.EXECUTING)
 
         nt = threading.Thread(target = TaskManager.normalTask, name = 'normal_task_at_%s' % evt.getMachineName(), args = (evt, vehicle))
         nt.setDaemon(True)
@@ -182,6 +184,7 @@ class TaskManager(object):
         task.addTransportOrder(t5, 0, 4)
 
         TaskManager.tom.sendOrderTask(task)
+        CommunicationTerminal.typicalSend(evt, ReplyTaskStatus.GRASPING)
 
         time.sleep(10)
         # check 
@@ -191,9 +194,9 @@ class TaskManager(object):
             orderState = TaskManager.getOrderTaskState(name)
 
         if orderState == 'FINISHED':
-            CommunicationTerminal.typicalSend(evt, True)
+            CommunicationTerminal.typicalSend(evt, ReplyTaskStatus.SUCCESS)
         elif orderState == 'FAILED':
-            CommunicationTerminal.typicalSend(evt, False)
+            CommunicationTerminal.typicalSend(evt, ReplyTaskStatus.FAILED)
 
 
         vehicle.setStatus(VehicleStatus.IDLE)
@@ -271,7 +274,7 @@ if __name__ == '__main__':
     de = XDEvent('{         \
     "event_source":"0",\
     "event_status":0,\
-    "info": "1:1",\
+    "info": "3",\
     "machine_code": "JC-8000A-89",\
     "machine_ip":"192.168.0.222",\
     "machine_status": "4",\
