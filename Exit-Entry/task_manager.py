@@ -268,7 +268,7 @@ class TaskManager(object):
         return TaskManager.tom.getOrderInfo(orderTask.getOrderNameByIndex(orderTask.getOrdersNum() - 1)).get('state')
 
 if __name__ == '__main__':
-    xdv = XdLoaderVehicle('xiongdiloader')
+    xdv = XdLoaderVehicle('Carrier_XdLoaderVehicle_1')
     xdv.updateByInfo({"DI":[True,False,True,True,True,True,True,True,True,True],"status":"ERROR"})
 
     de = XDEvent('{         \
