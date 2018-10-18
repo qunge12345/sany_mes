@@ -17,7 +17,8 @@ class CommunicationTerminal(BaseHTTPRequestHandler):
     def initialize(eventProcessor, loggerName = 'communication terminal'):
         CommunicationTerminal.log = utils.logger().getLogger(loggerName)
         CommunicationTerminal.evtProc = eventProcessor
-        soaplib = cdll.LoadLibrary("./GSoapDllx86.dll")
+        CommunicationTerminal.soaplib = cdll.LoadLibrary("./GSoapDllx86.dll")
+        CommunicationTerminal.soapLock = threading.Lock()
 
     def do_POST(self):
         data = self.rfile.read(int(self.headers["content-length"])).decode('utf-8')
@@ -46,6 +47,13 @@ class CommunicationTerminal(BaseHTTPRequestHandler):
         # data = rb'{"data":"{\"event_id\":\"%s\",\"event_info\":\"%s\",\"event_status\":\"%s\",\"machine_code\":\"%s\",\"machine_ip\":\"%s\"}","id" :"","type" : "%s"}' % \
         # (evt.getMachineStatus(), )
         CommunicationTerminal.log.info(evt.getMachineName() + '_' + evt.getType().name + ' operate ' + success)
+        CommunicationTerminal.soapLock.acquire()
+        try:
+            pass
+        except Exception as e:
+            CommunicationTerminal.log.error(e)
+        finally:
+            CommunicationTerminal.soapLock.release()
 
 
 if __name__ == '__main__':

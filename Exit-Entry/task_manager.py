@@ -104,16 +104,35 @@ class TaskManager(object):
         # TODO  !! let ARM_VEHICLE to do this?
 
         t2 = TransportOrder()   # arm, depend t0
-        t2.addDestination(t1LocName, 'Wait')
+
+        # wait to inform the production device ??
+        t2.addDestination(t1LocName, 'Wait')#, TransportOrder.createProterty('duration', '100'))
         if vehicle.getType() == VehicleType.XD_LOADER:
             tempI = 0
+        
+        # show if arm has taken picture for marking
+        remark = False
+
         for v in operationList:
-            if v[0] < ONE_SIDE_SLOT_NUM:   #   0,1,2 are the same side !!! this param will be extracted TODO
+            if v[0] < ONE_SIDE_SLOT_NUM:   # the same side
+
+                properties = []
+
+                # take picture for mark
+                if False == remark:
+                    remark = True
+                    properties.append(TransportOrder.createProterty('remark', '0'))
+
+                # special 
                 if vehicle.getType() == VehicleType.XD_LOADER:
                     depth = '_' + str(tempI)
                     tempI += 1
-                t2.addDestination(t1LocName, 'Grasp', TransportOrder.createProterty(from_str, 'self_' + str(v[0])), \
-                TransportOrder.createProterty(to_str,'device_' + str(v[1]) + depth))
+                    if tempI == 3:
+                        tempI = 0
+                
+                properties.append(TransportOrder.createProterty(from_str, vehicle.getName() + ':'  + str(v[0])))
+                properties.append(TransportOrder.createProterty(to_str,evt.getMachineName() + ':'  + str(v[1]) + depth))
+                t2.addDestination(t1LocName, 'Grasp', *properties)
 
         t3 = TransportOrder()   # vehicle, depend t2
         needTurn = False
@@ -128,15 +147,29 @@ class TaskManager(object):
 
         t4 = TransportOrder()   # arm, depend t3
         t4.addDestination(t1LocName, 'Wait')
-        if vehicle.getType() == VehicleType.XD_LOADER:
-            tempI = 0
+
+        # show if arm has taken picture for marking
+        remark = False
+
         for v in operationList:
-            if v[0] >= ONE_SIDE_SLOT_NUM:   #   0,1,2 are the same side !!! this param will be extracted TODO
+            if v[0] >= ONE_SIDE_SLOT_NUM:   #   the same side
+
+                properties = []
+
+                # take picture for mark
+                if False == remark:
+                    remark = True
+                    properties.append(TransportOrder.createProterty('remark', '1'))
+
+                # sepcial
                 if vehicle.getType() == VehicleType.XD_LOADER:
                     depth = '_' + str(tempI)
                     tempI += 1
-                t4.addDestination(t1LocName, 'Grasp', TransportOrder.createProterty(from_str, 'self_' + str(v[0])), \
-                TransportOrder.createProterty(to_str,'device_' + str(v[1]) + depth))
+                    if tempI == 3:
+                        tempI = 0
+                properties.append(TransportOrder.createProterty(from_str, vehicle.getName() + ':'  + str(v[0])))
+                properties.append(TransportOrder.createProterty(to_str,evt.getMachineName() + ':'  + str(v[1]) + depth))
+                t4.addDestination(t1LocName, 'Grasp', *properties)
 
         t5 = TransportOrder()   # vehicle, depend t4
         t5.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('orientation', str(orientation)))
@@ -232,8 +265,8 @@ class TaskManager(object):
         return TaskManager.tom.getOrderInfo(orderTask.getOrderNameByIndex(orderTask.getOrdersNum() - 1)).get('state')
 
 if __name__ == '__main__':
-    xdv = XdUnloaderVehicle('xiongdiloader')
-    xdv.updateByInfo({"DI":[True,False,True,True,False,False,True,True,True,True],"status":"ERROR"})
+    xdv = XdLoaderVehicle('xiongdiloader')
+    xdv.updateByInfo({"DI":[True,False,True,True,True,True,True,True,True,True],"status":"ERROR"})
 
     de = XDEvent('{         \
     "event_source":"0",\
@@ -241,10 +274,10 @@ if __name__ == '__main__':
     "info": "1:1",\
     "machine_code": "JC-8000A-89",\
     "machine_ip":"192.168.0.222",\
-    "machine_status": "5",\
+    "machine_status": "4",\
     "time": "20180404095212",\
     "version": "1.0"\
     }')
-    # TaskManager.createNormalTask(de, xdv)
-    TaskManager.createReloadTask(xdv)
+    TaskManager.createNormalTask(de, xdv)
+    # TaskManager.createReloadTask(xdv)
     time.sleep(5)
