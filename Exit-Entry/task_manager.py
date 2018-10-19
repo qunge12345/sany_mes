@@ -17,19 +17,21 @@ from trans_order import TransportOrder
 from order_sequence_head import OrderSequenceHead
 from order_task import OrderTask
 from trans_order_manager import TransportOrderManager
-from communication_terminal import CommunicationTerminal, ReplyTaskStatus
+from replyer import Replyer, ReplyTaskStatus
 
 class TaskManager(object):
 
-    tom = TransportOrderManager(serverIP = "127.0.0.1", serverPort = 55200)
+    tom = TransportOrderManager(serverIP = "192.168.2.100", serverPort = 55200)
+    log = utils.logger().getLogger('task manager')
 
     @staticmethod
     def createNormalTask(evt, vehicle):
         '''
         create a thread of normal task
         '''
+        TaskManager.log.info('normal task created: ' + str(evt) + ' --- ' + str(vehicle))
         vehicle.setStatus(VehicleStatus.PROCEEDING)
-        CommunicationTerminal.typicalSend(evt, ReplyTaskStatus.EXECUTING)
+        Replyer.typicalSend(evt, ReplyTaskStatus.EXECUTING)
 
         nt = threading.Thread(target = TaskManager.normalTask, name = 'normal_task_at_%s' % evt.getMachineName(), args = (evt, vehicle))
         nt.setDaemon(True)
@@ -40,11 +42,24 @@ class TaskManager(object):
         '''
         create a thread of reload task
         '''
+        TaskManager.log.info('reload task created: ' + str(vehicle))
         vehicle.setStatus(VehicleStatus.PROCEEDING)
 
         rt = threading.Thread(target = TaskManager.reloadTask, name = 'reload_task_at_%s' % vehicle.getName(), args = (vehicle,))
         rt.setDaemon(True)
         rt.start()
+
+    @staticmethod
+    def createDropTask(vehicle):
+        '''
+        create a thread of drop task
+        '''
+        TaskManager.log.info('drop task created: ' + str(vehicle))
+        vehicle.setStatus(VehicleStatus.PROCEEDING)
+
+        dt = threading.Thread(target = TaskManager.dropTask, name = 'drop_task_at_%s' % vehicle.getName(), args = (vehicle,))
+        dt.setDaemon(True)
+        dt.start()
 
     @staticmethod
     def normalTask(evt, vehicle):
@@ -55,7 +70,10 @@ class TaskManager(object):
         operationList = SlotAdapter.checkout(vehicle, evt)
 
         while operationList == None:
-            TaskManager.reloadTask(vehicle, False)
+            if vehicle.getType() in [VehicleType.XD_LOADER, VehicleType.HX_LOADER]:
+                TaskManager.reloadTask(vehicle, False)
+            else:
+                TaskManager.dropTask(vehicle, False)
             operationList = SlotAdapter.checkout(vehicle, evt)
 
         # sequence head
@@ -77,9 +95,9 @@ class TaskManager(object):
         # ****difference of vehicle and devices, begin****
         ONE_SIDE_SLOT_NUM = 3
         if vehicle.getType() == VehicleType.XD_LOADER:
-            ONE_SIDE_SLOT_NUM = 3
+            ONE_SIDE_SLOT_NUM = 6
         elif vehicle.getType() == VehicleType.XD_UNLOADER:
-            ONE_SIDE_SLOT_NUM = 4
+            ONE_SIDE_SLOT_NUM = 3
         elif vehicle.getType() in (VehicleType.HX_LOADER, VehicleType.HX_UNLOADER):
             ONE_SIDE_SLOT_NUM = 3
 
@@ -102,11 +120,7 @@ class TaskManager(object):
         t1LocName = 'Location_' + evt.getMachineName() + '_' + evt.getType().name + '_Arm'
         t1.addDestination(t1LocName, 'Wait')
 
-        # TELL THE DEVICE , START TO GRASP
-        # TODO  !! let ARM_VEHICLE to do this?
-
         t2 = TransportOrder()   # arm, depend t0
-
         # wait to inform the production device ??
         t2.addDestination(t1LocName, 'Wait')#, TransportOrder.createProterty('duration', '100'))
         if vehicle.getType() == VehicleType.XD_LOADER:
@@ -184,19 +198,19 @@ class TaskManager(object):
         task.addTransportOrder(t5, 0, 4)
 
         TaskManager.tom.sendOrderTask(task)
-        CommunicationTerminal.typicalSend(evt, ReplyTaskStatus.GRASPING)
+        Replyer.typicalSend(evt, ReplyTaskStatus.GRASPING)
 
         time.sleep(10)
         # check 
-        orderState = TaskManager.getOrderTaskState(name)
+        orderState = TaskManager.getOrderTaskState(task)
         while orderState not in ('FINISHED', 'FAILED'):
             time.sleep(2)
-            orderState = TaskManager.getOrderTaskState(name)
+            orderState = TaskManager.getOrderTaskState(task)
 
         if orderState == 'FINISHED':
-            CommunicationTerminal.typicalSend(evt, ReplyTaskStatus.SUCCESS)
+            Replyer.typicalSend(evt, ReplyTaskStatus.SUCCESS)
         elif orderState == 'FAILED':
-            CommunicationTerminal.typicalSend(evt, ReplyTaskStatus.FAILED)
+            Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
 
 
         vehicle.setStatus(VehicleStatus.IDLE)
@@ -210,9 +224,7 @@ class TaskManager(object):
         '''
 
         # confirm the location
-        location = 'Location_Unload'
-        if vehicle.getType() in (VehicleType.XD_LOADER, VehicleType.HX_LOADER):
-            location = 'Location_Load'
+        location = 'Location_Load'
 
         t = TransportOrder()
         t.setIntendedVehicle(vehicle.getName())
@@ -235,6 +247,41 @@ class TaskManager(object):
         t.addDestination('Location_WD_Left', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'false'))
 
         name = 'reload_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        TaskManager.tom.sendOrder(t, name)
+
+        # wait for executing
+        time.sleep(10)
+
+        orderState = TaskManager.getOrderState(name)
+        while orderState not in ('FINISHED', 'FAILED'):
+            time.sleep(5)
+            orderState = TaskManager.getOrderState(name)
+
+        if orderState == 'FINISHED':
+            pass
+        elif orderState == 'FAILED':
+            pass
+
+        if independent == True:
+            vehicle.setStatus(VehicleStatus.IDLE)
+
+
+    @staticmethod
+    def dropTask(vehicle, independent = True):
+        '''
+        go to drop
+
+        TODO: use config file instead of those string !!!
+        '''
+
+        # confirm the location
+        location = 'Location_Unload'
+
+        t = TransportOrder()
+        t.setIntendedVehicle(vehicle.getName())        
+        t.addDestination(location, 'Wait', TransportOrder.createProterty('duration', '10000'))
+    
+        name = 'unload_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         TaskManager.tom.sendOrder(t, name)
 
         # wait for executing

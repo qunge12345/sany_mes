@@ -60,6 +60,10 @@ class Vehicle(metaclass = abc.ABCMeta):
     def getType(self):
         return self._type
 
+    def __str__(self):
+        return self._name + " : " + self._type.name  + " : " + self._status.name + \
+        " : " + self._latastStamp.strftime('%Y-%m-%d-%H-%M-%S') + " : " + str(self._availableList)
+
     @utils.mb_lock_and_catch
     def getLatastStamp(self):
         return self._latastStamp
@@ -110,7 +114,7 @@ class XdUnloaderVehicle(Vehicle):
 
     @utils.mb_lock_and_catch
     def updateByInfo(self, info):
-        self._availableList = list(map(int, info.get('DI')))[2:10]
+        self._availableList = list(map(int, info.get('DI')))[2:14]
         if info.get('dispatch_state') == 2: # ERROR == 2
             self._status = VehicleStatus.ERROR
 
@@ -161,7 +165,7 @@ class HxUnloaderVehicle(Vehicle):
 if __name__ == '__main__':
     
     hxv = HxLoaderVehicle('hexin1')
-    hxv.updateByInfo({"DI":[True,False,True,True,False,False,True,True,True,True],"status":"ERROR"})
+    hxv.updateByInfo({"DI":[True,False,True,True,False,False,True,True,True,True],"status" : "ERROR"})
     print(hxv.getAvailableIndexList())
     print(hxv.getAvailableNum())
     print(hxv.getStatus())

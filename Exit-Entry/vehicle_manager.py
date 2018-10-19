@@ -42,7 +42,7 @@ class VehicleManager(object):
         listen from redis
         '''
         # establish redis
-        r = redis.StrictRedis(host = '127.0.0.1', port = 6379, db = 0)
+        r = redis.StrictRedis(host = '192.168.2.100', port = 6379, db = 0)
         p = r.pubsub()
         p.psubscribe("SW:VehicleStatus:Carrier_*")
 
@@ -86,6 +86,10 @@ class VehicleManager(object):
                 return v
 
         return None
+
+    def show(self):
+        for v in self._vehicles.values():
+            print(v)
 
 
 if __name__ == '__main__':

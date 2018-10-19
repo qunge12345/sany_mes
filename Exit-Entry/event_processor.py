@@ -5,6 +5,7 @@ from vehicle import *
 from xd_event import *
 from vehicle_manager import *
 from slot_adapter import *
+from task_manager import TaskManager
 
 import utils
 import json
@@ -32,6 +33,7 @@ class EventProcessor(object):
         # create event by json string
         evt = XDEvent(eventStr)
         if evt.getType() == DeviceType.UNKNOW:
+            self._log.info('unknown status: ' + evt.getMachineName() + ' info: ' + evt.getMachineInfo())
             return
 
         # get the value of evt type
@@ -40,10 +42,17 @@ class EventProcessor(object):
         # override the out-of-date event
         for i,e in enumerate(self._queues[evtTypeValue]):
             if e.getMachineName() == evt.getMachineName():
+                self._log.info('event override: ' + evt.getMachineName() + ' ' + evt.getType().name +  ': ' + e.getMachineInfo() + ' --> ' + evt.getMachineInfo())
                 self._queues[evtTypeValue][i] = evt
                 return
 
         self._queues[evtTypeValue].append(evt)
+
+    @utils.mb_lock_and_catch
+    def show(self):
+        for que in self._queues:
+            for e in que:
+                print(e)
 
     @utils.mb_lock_and_catch
     def scan(self):
@@ -51,8 +60,11 @@ class EventProcessor(object):
         scan the queues and create pairs of vehicle--event
         '''
         # reload work
-        for vehicle in self._vehicles.getIdleAndFullVehicles():
+        for vehicle in self._vehicles.getIdleAndEmptyVehicles():
             TaskManager.createReloadTask(vehicle)
+
+        for vehicle in self._vehicles.getIdleAndFullVehicles():
+            TaskManager.createDropTask(vehicle)
 
         # normal work
         for queue in self._queues:

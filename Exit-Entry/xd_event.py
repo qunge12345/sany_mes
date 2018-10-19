@@ -76,6 +76,8 @@ class XDEvent(object):
     def getMachineStatus(self):
         return self._machineStatus
 
+    def __str__(self):
+        return self._machineName + ":" + self._deviceType.name + ":" + self._info
         
         
 
