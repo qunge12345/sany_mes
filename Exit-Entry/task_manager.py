@@ -30,7 +30,7 @@ class TaskManager(object):
         create a thread of normal task
         '''
         TaskManager.log.info('normal task created: ' + str(evt) + ' --- ' + str(vehicle))
-        vehicle.setStatus(VehicleStatus.PROCEEDING)
+        vehicle.setState(VehicleState.PROCEEDING)
         Replyer.typicalSend(evt, ReplyTaskStatus.EXECUTING)
 
         nt = threading.Thread(target = TaskManager.normalTask, name = 'normal_task_at_%s' % evt.getMachineName(), args = (evt, vehicle))
@@ -43,7 +43,7 @@ class TaskManager(object):
         create a thread of reload task
         '''
         TaskManager.log.info('reload task created: ' + str(vehicle))
-        vehicle.setStatus(VehicleStatus.PROCEEDING)
+        vehicle.setState(VehicleState.PROCEEDING)
 
         rt = threading.Thread(target = TaskManager.reloadTask, name = 'reload_task_at_%s' % vehicle.getName(), args = (vehicle,))
         rt.setDaemon(True)
@@ -55,7 +55,7 @@ class TaskManager(object):
         create a thread of drop task
         '''
         TaskManager.log.info('drop task created: ' + str(vehicle))
-        vehicle.setStatus(VehicleStatus.PROCEEDING)
+        vehicle.setState(VehicleState.PROCEEDING)
 
         dt = threading.Thread(target = TaskManager.dropTask, name = 'drop_task_at_%s' % vehicle.getName(), args = (vehicle,))
         dt.setDaemon(True)
@@ -103,11 +103,13 @@ class TaskManager(object):
 
         from_str = 'from'
         to_str = 'to'
+        operation = 'GraspLoad'
         if vehicle.getType() in (VehicleType.XD_UNLOADER, VehicleType.HX_UNLOADER):
             from_str = 'to'
             to_str = 'from'
+            operation = 'GraspUnload'
 
-        depth = ''
+        depth = ':0'
         tempI = 0
         # ****difference of vehicle and devices, end****
 
@@ -122,7 +124,7 @@ class TaskManager(object):
 
         t2 = TransportOrder()   # arm, depend t0
         # wait to inform the production device ??
-        t2.addDestination(t1LocName, 'Wait')#, TransportOrder.createProterty('duration', '100'))
+        t2.addDestination(t1LocName, 'ArmReset')#, TransportOrder.createProterty('duration', '100'))
         if vehicle.getType() == VehicleType.XD_LOADER:
             tempI = 0
         
@@ -137,18 +139,19 @@ class TaskManager(object):
                 # take picture for mark
                 if False == remark:
                     remark = True
-                    properties.append(TransportOrder.createProterty('remark', '0'))
+                
+                properties.append(TransportOrder.createProterty('remark', '0'))
 
                 # special 
                 if vehicle.getType() == VehicleType.XD_LOADER:
-                    depth = '_' + str(tempI)
+                    depth = ':' + str(tempI)
                     tempI += 1
                     if tempI == 3:
                         tempI = 0
                 
-                properties.append(TransportOrder.createProterty(from_str, vehicle.getName() + ':'  + str(v[0])))
-                properties.append(TransportOrder.createProterty(to_str,evt.getMachineName() + ':'  + str(v[1]) + depth))
-                t2.addDestination(t1LocName, 'Grasp', *properties)
+                properties.append(TransportOrder.createProterty(from_str, str(v[0] + 1)))
+                properties.append(TransportOrder.createProterty(to_str, evt.getMachineName()[-2:] + ':' + str(v[1]) + depth))
+                t2.addDestination(t1LocName, operation, *properties)
 
         t3 = TransportOrder()   # vehicle, depend t2
         needTurn = False
@@ -175,18 +178,20 @@ class TaskManager(object):
                 # take picture for mark
                 if False == remark:
                     remark = True
-                    properties.append(TransportOrder.createProterty('remark', '1'))
+                    
+                properties.append(TransportOrder.createProterty('remark', '1'))
 
                 # sepcial
                 if vehicle.getType() == VehicleType.XD_LOADER:
-                    depth = '_' + str(tempI)
+                    depth = ':' + str(tempI)
                     tempI += 1
                     if tempI == 3:
                         tempI = 0
-                properties.append(TransportOrder.createProterty(from_str, vehicle.getName() + ':'  + str(v[0])))
-                properties.append(TransportOrder.createProterty(to_str,evt.getMachineName() + ':'  + str(v[1]) + depth))
-                t4.addDestination(t1LocName, 'Grasp', *properties)
+                properties.append(TransportOrder.createProterty(from_str, str(v[0] + 1)))
+                properties.append(TransportOrder.createProterty(to_str, evt.getMachineName()[-2:] + ':' + str(v[1]) + depth))
+                t4.addDestination(t1LocName, operation, *properties)
 
+        t4.addDestination(t1LocName, 'ArmReset')
         t5 = TransportOrder()   # vehicle, depend t4
         t5.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('orientation', str(orientation)))
 
@@ -197,23 +202,25 @@ class TaskManager(object):
         task.addTransportOrder(t4, 1, 3)
         task.addTransportOrder(t5, 0, 4)
 
-        TaskManager.tom.sendOrderTask(task)
-        Replyer.typicalSend(evt, ReplyTaskStatus.GRASPING)
+        try:
+            TaskManager.tom.sendOrderTask(task)
+            Replyer.typicalSend(evt, ReplyTaskStatus.GRASPING)
 
-        time.sleep(10)
-        # check 
-        orderState = TaskManager.getOrderTaskState(task)
-        while orderState not in ('FINISHED', 'FAILED'):
-            time.sleep(2)
+            time.sleep(10)
+            # check 
             orderState = TaskManager.getOrderTaskState(task)
+            while orderState not in ('FINISHED', 'FAILED'):
+                time.sleep(2)
+                orderState = TaskManager.getOrderTaskState(task)
 
-        if orderState == 'FINISHED':
-            Replyer.typicalSend(evt, ReplyTaskStatus.SUCCESS)
-        elif orderState == 'FAILED':
-            Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
-
-
-        vehicle.setStatus(VehicleStatus.IDLE)
+            if orderState == 'FINISHED':
+                Replyer.typicalSend(evt, ReplyTaskStatus.SUCCESS)
+            elif orderState == 'FAILED':
+                Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
+        except Exception as e:
+            TaskManager.log.error(e)
+        finally:
+            vehicle.setState(VehicleState.IDLE)
 
     @staticmethod
     def reloadTask(vehicle, independent = True):
@@ -247,23 +254,27 @@ class TaskManager(object):
         t.addDestination('Location_WD_Left', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'false'))
 
         name = 'reload_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-        TaskManager.tom.sendOrder(t, name)
 
-        # wait for executing
-        time.sleep(10)
+        try:
+            TaskManager.tom.sendOrder(t, name)
 
-        orderState = TaskManager.getOrderState(name)
-        while orderState not in ('FINISHED', 'FAILED'):
-            time.sleep(5)
+            # wait for executing
+            time.sleep(10)
+
             orderState = TaskManager.getOrderState(name)
+            while orderState not in ('FINISHED', 'FAILED'):
+                time.sleep(5)
+                orderState = TaskManager.getOrderState(name)
 
-        if orderState == 'FINISHED':
-            pass
-        elif orderState == 'FAILED':
-            pass
-
-        if independent == True:
-            vehicle.setStatus(VehicleStatus.IDLE)
+            if orderState == 'FINISHED':
+                pass
+            elif orderState == 'FAILED':
+                pass
+        except Exception as e:
+            TaskManager.log.error(e)
+        finally:
+            if independent == True:
+                vehicle.setState(VehicleState.IDLE)
 
 
     @staticmethod
@@ -282,23 +293,26 @@ class TaskManager(object):
         t.addDestination(location, 'Wait', TransportOrder.createProterty('duration', '10000'))
     
         name = 'unload_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-        TaskManager.tom.sendOrder(t, name)
+        try:
+            TaskManager.tom.sendOrder(t, name)
 
-        # wait for executing
-        time.sleep(10)
+            # wait for executing
+            time.sleep(10)
 
-        orderState = TaskManager.getOrderState(name)
-        while orderState not in ('FINISHED', 'FAILED'):
-            time.sleep(5)
             orderState = TaskManager.getOrderState(name)
+            while orderState not in ('FINISHED', 'FAILED'):
+                time.sleep(5)
+                orderState = TaskManager.getOrderState(name)
 
-        if orderState == 'FINISHED':
-            pass
-        elif orderState == 'FAILED':
-            pass
-
-        if independent == True:
-            vehicle.setStatus(VehicleStatus.IDLE)
+            if orderState == 'FINISHED':
+                pass
+            elif orderState == 'FAILED':
+                pass
+        except Exception as e:
+            TaskManager.log.error(e)
+        finally:
+            if independent == True:
+                vehicle.setState(VehicleState.IDLE)
 
     @staticmethod
     def getOrderState(orderName):
@@ -316,7 +330,7 @@ class TaskManager(object):
 
 if __name__ == '__main__':
     xdv = XdLoaderVehicle('Carrier_XdLoaderVehicle_1')
-    xdv.updateByInfo({"DI":[True,False,True,True,True,True,True,True,True,True],"status":"ERROR"})
+    xdv.updateByInfo({"DI":[True,False,True,True,False,True,True,True,True,True],"status":"ERROR"})
 
     de = XDEvent('{         \
     "event_source":"0",\
