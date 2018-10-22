@@ -34,8 +34,13 @@ class VehicleManager(object):
         mt.setDaemon(True)
         mt.start()
 
+    def getIdleAndEmptyVehicles(self):
+        return [v for v in self._vehicles.values() if v.getStatus() == VehicleState.IDLE and \
+        v.getAvailableNum() == 0 and v.getType() in [VehicleType.HX_LOADER, VehicleType.XD_LOADER]]
+
     def getIdleAndFullVehicles(self):
-        return [v for v in self._vehicles.values() if v.getStatus() == VehicleStatus.IDLE and v.getAvailableNum() == 0]
+        return [v for v in self._vehicles.values() if v.getStatus() == VehicleState.IDLE and \
+        v.getAvailableNum() == 0 and v.getType() in [VehicleType.HX_UNLOADER, VehicleType.XD_UNLOADER]]
 
     def listenHandler(self):
         '''
@@ -57,6 +62,7 @@ class VehicleManager(object):
                     # a new vehicle is added
                     self._vehicles[vehicleName] = globals()[vehicleName.split('_')[1]](vehicleName)
 
+                self._vehicles[vehicleName].setTimestamp(datetime.datetime.now())
                 self._vehicles[vehicleName].updateByInfo(msg)
             
 
@@ -70,9 +76,9 @@ class VehicleManager(object):
             now = datetime.datetime.now()
             # loop through the vehicles
             for v in self._vehicles.values():
-                if v.getStatus() != VehicleStatus.UNVAILABLE and (now - v.getLatastStamp()).seconds > 10:
+                if v.getStatus() != VehicleState.UNVAILABLE and (now - v.getLatastStamp()).seconds > 10:
                     self._log.warn('vehicle %s lost information' % v.getName())
-                    v.setStatus(VehicleStatus.UNVAILABLE)
+                    # v.setState(VehicleState.UNVAILABLE)
 
     def getAvailableVehicleByEvent(self, deviceEvent):
         '''
@@ -80,7 +86,7 @@ class VehicleManager(object):
         '''
         deviceType = deviceEvent.getType()
         for v in self._vehicles.values():
-            if v.getStatus() == VehicleStatus.IDLE and  \
+            if v.getStatus() == VehicleState.IDLE and  \
             v.getType().value == deviceType.value and   \
             v.getAvailableNum() > 0:
                 return v

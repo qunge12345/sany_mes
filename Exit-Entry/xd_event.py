@@ -33,7 +33,7 @@ class XDEvent(object):
         # which slot
         self._info = self._data.get('info')
         # machine ip & uid and so on
-        self._machineName = self._data.get('machine_code')
+        self._machineName = self._data.get('machine_code')# + '-01'
         self._machineIP = self._data.get('machine_ip')
         self._timestamp = self._data.get('time')
         self._version = self._data.get('version')

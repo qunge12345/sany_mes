@@ -18,11 +18,20 @@ class VehicleType(Enum):
     UNKNOW = 4
 
 @unique
-class VehicleStatus(Enum):
+class VehicleState(Enum):
     IDLE = 1
     PROCEEDING = 2
     ERROR = 3   # only get ERROR state from json string !
     UNVAILABLE = 4
+
+class VehicleStatus(Enum):
+    UNKNOWN	= 0
+    UNAVAILABLE = 1
+    ERROR = 2
+    IDLE = 3
+    EXECUTING = 4
+    CHARGING = 5
+
 
 class Vehicle(metaclass = abc.ABCMeta):
 
@@ -33,7 +42,7 @@ class Vehicle(metaclass = abc.ABCMeta):
     def __init__(self, vehicleType, vehicleName):
         self._log = utils.logger().getLogger(vehicleName)
         self._lock = threading.Lock()
-        self._status = VehicleStatus.UNVAILABLE
+        self._status = VehicleState.IDLE
         self._type = vehicleType # type is used for classified in vehicles
         self._name = vehicleName # name is used for update from json string
         self._availableList = []
@@ -47,7 +56,7 @@ class Vehicle(metaclass = abc.ABCMeta):
         self._latastStamp = datetime.datetime.now()
 
     @utils.mb_lock_and_catch
-    def setStatus(self, status):
+    def setState(self, status):
         self._status = status
 
     @utils.mb_lock_and_catch
@@ -67,6 +76,10 @@ class Vehicle(metaclass = abc.ABCMeta):
     @utils.mb_lock_and_catch
     def getLatastStamp(self):
         return self._latastStamp
+
+    @utils.mb_lock_and_catch
+    def setTimestamp(self, timestamp):
+        self._latastStamp = timestamp
 
     @abc.abstractmethod
     def getAvailableNum(self):
@@ -94,9 +107,7 @@ class XdLoaderVehicle(Vehicle):
 
     @utils.mb_lock_and_catch
     def updateByInfo(self, info):
-        self._availableList = list(map(int, info.get('DI')))[2:8]
-        if info.get('dispatch_state') == 2: # ERROR == 2
-            self._status = VehicleStatus.ERROR
+        self._availableList = list(map(int, info.get('DI')))[2:14]
 
 
 class XdUnloaderVehicle(Vehicle):
@@ -114,11 +125,8 @@ class XdUnloaderVehicle(Vehicle):
 
     @utils.mb_lock_and_catch
     def updateByInfo(self, info):
-        self._availableList = list(map(int, info.get('DI')))[2:14]
-        if info.get('dispatch_state') == 2: # ERROR == 2
-            self._status = VehicleStatus.ERROR
-
-        # print(self._availableList)
+        tl = list(map(int, info.get('DI')))
+        self._availableList = [tl[12],tl[10],tl[13],tl[6],tl[11],tl[8]]
 
 
 class HxLoaderVehicle(Vehicle):
@@ -139,7 +147,7 @@ class HxLoaderVehicle(Vehicle):
     def updateByInfo(self, info):
         self._availableList = list(map(int, info.get('DI')))[0:6]
         if info.get('dispatch_state') == 2: # ERROR == 2
-            self._status = VehicleStatus.ERROR
+            self._status = VehicleState.ERROR
 
 
 class HxUnloaderVehicle(Vehicle):
@@ -159,12 +167,12 @@ class HxUnloaderVehicle(Vehicle):
     def updateByInfo(self, info):
         self._availableList = list(map(int, info.get('DI')))
         if info.get('dispatch_state') == 2: # ERROR == 2
-            self._status = VehicleStatus.ERROR
+            self._status = VehicleState.ERROR
 
     
 if __name__ == '__main__':
     
-    hxv = HxLoaderVehicle('hexin1')
+    hxv = XdLoaderVehicle('hexin1')
     hxv.updateByInfo({"DI":[True,False,True,True,False,False,True,True,True,True],"status" : "ERROR"})
     print(hxv.getAvailableIndexList())
     print(hxv.getAvailableNum())
