@@ -1,6 +1,6 @@
 import utils
 import accepts
-from urllib import request
+# from urllib import request
 import requests
 from trans_order import TransportOrder
 from order_sequence import OrderSequence
@@ -35,9 +35,11 @@ class TransportOrderManager(object):
         postData = tOrder.encode().encode('utf-8')
         self._log.info(reqUri)
         self._log.info(postData)
-        req = request.Request(url = reqUri, data = postData, method = 'POST')
-        r = request.urlopen(req).read()
-        self._log.info(r.decode('utf-8'))
+        # req = request.Request(url = reqUri, data = postData, method = 'POST')
+        # r = request.urlopen(req).read()
+        # self._log.info(r.decode('utf-8'))
+        req = requests.post(url = reqUri, data = postData)
+        self._log.info('code ' + str(req.status_code) + ' ' + req.content.decode('utf-8'))
 
     @utils.mb_lock_and_catch
     @accepts.mb_accepts(OrderSequence, str)
@@ -49,9 +51,11 @@ class TransportOrderManager(object):
         postData = os.encode().encode('utf-8')
         self._log.info(reqUri)
         self._log.info(postData)
-        req = request.Request(url = reqUri, data = postData, method = 'POST')
-        r = request.urlopen(req).read()
-        self._log.info(r.decode('utf-8'))
+        # req = request.Request(url = reqUri, data = postData, method = 'POST')
+        # r = request.urlopen(req).read()
+        # self._log.info(r.decode('utf-8'))
+        req = requests.post(url = reqUri, data = postData)
+        self._log.info('code ' + str(req.status_code) + ' ' + req.content.decode('utf-8'))
 
     @utils.mb_lock_and_catch
     @accepts.mb_accepts(OrderTask)
@@ -63,9 +67,11 @@ class TransportOrderManager(object):
         postData = ot.encode().encode('utf-8')
         self._log.info(reqUri)
         self._log.info(postData)
-        req = request.Request(url = reqUri, data = postData, method = 'POST')
-        r = request.urlopen(req).read()
-        self._log.info(r.decode('utf-8'))
+        # req = request.Request(url = reqUri, data = postData, method = 'POST')
+        # r = request.urlopen(req).read()
+        # self._log.info(r.decode('utf-8'))
+        req = requests.post(url = reqUri, data = postData)
+        self._log.info('code ' + str(req.status_code) + ' ' + req.content.decode('utf-8'))
         
     @utils.mb_lock_and_catch
     @accepts.mb_accepts(str, bool, bool)
@@ -75,9 +81,11 @@ class TransportOrderManager(object):
         reqUri = reqUri + reqParam
         # print(reqUri)
         # print(postData)
-        req = request.Request(url = reqUri, method = 'POST')
-        r = request.urlopen(req).read()
-        self._log.info(r.decode('utf-8'))
+        # req = request.Request(url = reqUri, method = 'POST')
+        # r = request.urlopen(req).read()
+        # self._log.info(r.decode('utf-8'))
+        req = requests.post(url = reqUri)
+        self._log.info('code ' + str(req.status_code) + ' ' + req.content.decode('utf-8'))
 
 
     @utils.mb_lock_and_catch
@@ -88,9 +96,11 @@ class TransportOrderManager(object):
         reqUri = reqUri + reqParam
         # print(reqUri)
         # print(postData)
-        req = request.Request(url = reqUri, method = 'POST')
-        r = request.urlopen(req).read()
-        self._log.info(r.decode('utf-8'))
+        # req = request.Request(url = reqUri, method = 'POST')
+        # r = request.urlopen(req).read()
+        # self._log.info(r.decode('utf-8'))
+        req = requests.post(url = reqUri)
+        self._log.info('code ' + str(req.status_code) + ' ' + req.content.decode('utf-8'))
 
     @utils.mb_lock_and_catch
     @accepts.mb_accepts(str)
