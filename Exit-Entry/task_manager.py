@@ -194,6 +194,8 @@ class TaskManager(object):
         t4.addDestination(t1LocName, 'ArmReset')
         t5 = TransportOrder()   # vehicle, depend t4
         t5.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('orientation', str(orientation)))
+        t6 = TransportOrder()   # arm, depend t5
+        t6.addDestination(t1LocName, 'Wait')
 
         task.addTransportOrder(t0, 0)
         task.addTransportOrder(t1, 1)
@@ -201,6 +203,7 @@ class TaskManager(object):
         task.addTransportOrder(t3, 0, 2)
         task.addTransportOrder(t4, 1, 3)
         task.addTransportOrder(t5, 0, 4)
+        task.addTransportOrder(t6, 1, 5)
 
         try:
             TaskManager.tom.sendOrderTask(task)
@@ -221,6 +224,7 @@ class TaskManager(object):
             TaskManager.log.error(e)
         finally:
             vehicle.setState(VehicleState.IDLE)
+            TaskManager.log.info('normal task over: ' + vehicle.getName() + ' : ' + str(evt) )
 
     @staticmethod
     def reloadTask(vehicle, independent = True):
@@ -275,6 +279,7 @@ class TaskManager(object):
         finally:
             if independent == True:
                 vehicle.setState(VehicleState.IDLE)
+                TaskManager.log.info('reload task over: ' + vehicle.getName())
 
 
     @staticmethod
@@ -313,6 +318,7 @@ class TaskManager(object):
         finally:
             if independent == True:
                 vehicle.setState(VehicleState.IDLE)
+                TaskManager.log.info('drop task over: ' + vehicle.getName())
 
     @staticmethod
     def getOrderState(orderName):

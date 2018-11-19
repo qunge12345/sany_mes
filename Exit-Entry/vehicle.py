@@ -108,6 +108,9 @@ class XdLoaderVehicle(Vehicle):
     @utils.mb_lock_and_catch
     def updateByInfo(self, info):
         self._availableList = list(map(int, info.get('DI')))[2:14]
+        t1 = self._availableList[2]
+        self._availableList[2] = self._availableList[0]
+        self._availableList[0] = t1
 
 
 class XdUnloaderVehicle(Vehicle):

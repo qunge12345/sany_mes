@@ -38,6 +38,7 @@ class Replyer(object):
 
         Replyer.soapLock.acquire()
         try:
+            Replyer.log.info("send to light isolation: " + data.decode())
             ret = Replyer.soaplib.func_send_data(data, url)
             # print(ret)
         except Exception as e:
