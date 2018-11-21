@@ -26,15 +26,30 @@ class Replyer(object):
 
     @staticmethod
     def typicalSend(evt, ts = ReplyTaskStatus.WAIT):
-        info = (evt.getMachineStatus(), evt.getMachineInfo(), str(ts.value), evt.getMachineName(), evt.getMachineIP(), evt.getEventSource())
-        data = rb'{"data":"{\"event_id\":\"%s\",\"event_info\":\"%s\",\"event_status\":\"%s\",\"machine_code\":\"%s\",\"machine_ip\":\"%s\"}","id" :"","type" : "%s"}' % \
-        (tuple(map(lambda x: x.encode('utf-8'), info)))
+        '''
+        send back to light-isolation
+        '''
+        url = b''
+        data = rb''
 
-        # xiong di device
-        url = b"http://192.168.2.30:8733/TraQRCodeService?wsdl"
+        if evt.getEventSource() == '0': # xiongdi device
 
-        if evt.getEventSource() == '1': # hang xin device
+            info = (evt.getMachineStatus(), evt.getMachineInfo(), str(ts.value), evt.getMachineName(), evt.getMachineIP(), evt.getEventSource())
+            data = rb'{"data":"{\"event_id\":\"%s\",\"event_info\":\"%s\",\"event_status\":\"%s\",\"machine_code\":\"%s\",\"machine_ip\":\"%s\"}","id" :"","type" : "%s"}' % \
+            (tuple(map(lambda x: x.encode('utf-8'), info)))
+
             url = b"http://192.168.2.30:8733/TraQRCodeService?wsdl"
+
+        elif evt.getEventSource() == '1': # hang xin device
+
+            info = (evt.getToken(), evt.getMachineStatus(), evt.getMachineInfo(), str(ts.value), evt.getMachineName(), evt.getMachineIP(), evt.getEventSource())
+            data = rb'{"data":"{\"token\":\"%s\",\"event_id\":\"%s\",\"event_info\":\"%s\",\"event_status\":\"%s\",\"machine_code\":\"%s\",\"machine_ip\":\"%s\"}","id" :"","type" : "%s"}' % \
+            (tuple(map(lambda x: x.encode('utf-8'), info)))
+            
+            url = b"http://192.168.2.50:8733/TraQRCodeService?wsdl"
+        else:
+            Replyer.log.info('UNKNOWN event, replyer will send nothing')
+            return
 
         Replyer.soapLock.acquire()
         try:

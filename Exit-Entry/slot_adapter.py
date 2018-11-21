@@ -1,6 +1,6 @@
 import sys
 sys.path.append('..')
-
+sys.path.append('.')
 import json
 import utils
 
@@ -28,8 +28,11 @@ class SlotAdapter(object):
 
         # type mismatch
         if vehicle.getType().value != deviceEvent.getType().value:
-            SlotAdapter.log.error("type mismatch : %s --- %s" % (vehicle.getType(), deviceEvent.getType()))
-            return None
+            if vehicle.getType() == VehicleType.HX_TRANS and deviceEvent.getType() in (DeviceType.HX_LOAD, DeviceType.HX_UNLOAD):
+                pass
+            else:
+                SlotAdapter.log.error("type mismatch : %s --- %s" % (vehicle.getType(), deviceEvent.getType()))
+                return None
 
         if vehicle.getType() == VehicleType.XD_LOADER:
             retList = SlotAdapter.checkXdLoading(vehicle, deviceEvent)
@@ -39,6 +42,11 @@ class SlotAdapter(object):
             retList = SlotAdapter.checkHxLoading(vehicle, deviceEvent)
         elif vehicle.getType() == VehicleType.HX_UNLOADER:
             retList = SlotAdapter.checkHxUnloading(vehicle, deviceEvent)
+        elif vehicle.getType() == VehicleType.HX_TRANS:
+            if DeviceType.HX_LOAD == deviceEvent.getType():
+                retList = SlotAdapter.checkHxLoading(vehicle, deviceEvent)
+            elif DeviceType.HX_UNLOAD == deviceEvent.getType():
+                retList = SlotAdapter.checkHxUnloading(vehicle, deviceEvent)
 
         return retList
 
@@ -100,25 +108,78 @@ class SlotAdapter(object):
     
     @staticmethod
     def checkHxLoading(vehicle, deviceEvent):
-        pass
+        deviceInfo = deviceEvent.getMachineInfo()   # as '120' or '80'
+        deviceLoadNum = int(deviceInfo) // 40
+        deviceLoadNum = deviceLoadNum if deviceLoadNum <= 3 else 3
+        deviceData = [0 for i in range(deviceLoadNum)]
 
+        availableVehicleSlotNum = 0
+        if VehicleType.HX_LOADER == vehicle.getType():
+            availableVehicleSlotNum = vehicle.getAvailableNum()
+        elif VehicleType.HX_TRANS == vehicle.getType():
+            availableVehicleSlotNum = vehicle.getLoaderAvailableNum()
+
+        # available slot on vehicle is not enough
+        if availableVehicleSlotNum < deviceLoadNum:
+            SlotAdapter.log.info('no enough card on vehicle %s' % vehicle.getName())
+            return None
+
+        availableVehicleSlotIndexList = []
+        if VehicleType.HX_TRANS == vehicle.getType():
+            availableVehicleSlotIndexList = vehicle.getLoaderAvailableIndexList()
+        else:
+            availableVehicleSlotIndexList = vehicle.getAvailableIndexList()
+
+        actualDeviceSlotIndexList = deviceData
+        actualVehicleSlotIndexList = availableVehicleSlotIndexList[:len(actualDeviceSlotIndexList)]
+        ret = [(x, actualDeviceSlotIndexList[i]) for i,x in enumerate(actualVehicleSlotIndexList)]
+        print(ret)
+        return ret
+
+        
     @staticmethod
     def checkHxUnloading(vehicle, deviceEvent):
-        pass
+        slotRatio = 1
+        deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0:0:0'
+        deviceData = list(map(int, deviceInfo.split(':')))
+        deviceUnloadNum = sum(deviceData) * slotRatio
+        
+        availableVehicleSlotNum = 0
+        if VehicleType.HX_UNLOADER == vehicle.getType():
+            availableVehicleSlotNum = vehicle.getAvailableNum()
+        elif VehicleType.HX_TRANS == vehicle.getType():
+            availableVehicleSlotNum = vehicle.getUnloaderAvailableNum()
+
+        if availableVehicleSlotNum < deviceUnloadNum:
+            SlotAdapter.log.info('no enough slot on vehicle %s' % vehicle.getName())
+            return None
+
+        availableVehicleSlotIndexList = []
+        if VehicleType.HX_TRANS == vehicle.getType():
+            availableVehicleSlotIndexList = vehicle.getUnloaderAvailableIndexList()
+        else:
+            availableVehicleSlotIndexList = vehicle.getAvailableIndexList()
+
+        actualDeviceSlotIndexList = [x for x in [i for i,x in enumerate(deviceData) if x > 0] for i in range(slotRatio)]
+        actualVehicleSlotIndexList = availableVehicleSlotIndexList[:len(actualDeviceSlotIndexList)]
+        ret = [(x, actualDeviceSlotIndexList[i]) for i,x in enumerate(actualVehicleSlotIndexList)]
+        print(ret)
+        return ret
         
 
 
 if __name__ == '__main__':
-    xdv = XdLoaderVehicle('xiongdiloader')
-    xdv.updateByInfo({"DI":[True,False,True,True,False,False,True,True,True,True],"status":1})
+    xdv = HxVehicle('hx')
+    xdv.updateByInfo({"DI":[True,False,True,True,False,False,True,False,True,True,False,False,True,False,True,True,False,False,True,False,True,True,False,False,True,False,True,True,False,False,True,True,True,True],"status":1})
     de = XDEvent('{         \
-    "event_source":"0",\
+    "event_source":"1",\
     "event_status":"0",\
-    "info": "2",\
+    "info": "1:1:1:1:1",\
     "machine_code": "JC-8000A-89",\
     "machine_ip":"192.168.0.222",\
-    "machine_status": "4",\
+    "machine_status": "5",\
     "time": "20180404095212",\
+    "token":"asdfasdf",\
     "version": "1.0"\
     }')
     SlotAdapter.checkout(xdv,de)

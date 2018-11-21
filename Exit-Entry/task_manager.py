@@ -33,7 +33,11 @@ class TaskManager(object):
         vehicle.setState(VehicleState.PROCEEDING)
         Replyer.typicalSend(evt, ReplyTaskStatus.EXECUTING)
 
-        nt = threading.Thread(target = TaskManager.normalTask, name = 'normal_task_at_%s' % evt.getMachineName(), args = (evt, vehicle))
+        thisFunc = TaskManager.normalXdTask
+        if evt.getType() in (DeviceType.HX_LOAD, DeviceType.HX_UNLOAD):
+            thisFunc = TaskManager.normalHxTask
+
+        nt = threading.Thread(target = thisFunc, name = 'normal_task_at_%s' % evt.getMachineName(), args = (evt, vehicle))
         nt.setDaemon(True)
         nt.start()
 
@@ -61,16 +65,18 @@ class TaskManager(object):
         dt.setDaemon(True)
         dt.start()
 
+
+
     @staticmethod
-    def normalTask(evt, vehicle):
+    def normalXdTask(evt, vehicle):
         '''
-        a normal task to load or unload
+        a normal xiongdi task to load or unload
         '''
         # operation list
         operationList = SlotAdapter.checkout(vehicle, evt)
 
         while operationList == None:
-            if vehicle.getType() in [VehicleType.XD_LOADER, VehicleType.HX_LOADER]:
+            if evt.getType() == DeviceType.XD_LOAD:
                 TaskManager.reloadTask(vehicle, False)
             else:
                 TaskManager.dropTask(vehicle, False)
@@ -85,7 +91,7 @@ class TaskManager(object):
         sArm.setFailureFatal(True)
         
         # order task
-        name = 'normal_at_' + evt.getMachineName() + '_' + vehicle.getName() + \
+        name = 'normal_xd_at_' + evt.getMachineName() + '_' + vehicle.getName() + \
         '_' + evt.getType().name + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         task = OrderTask()
         task.setName(name)
@@ -98,13 +104,11 @@ class TaskManager(object):
             ONE_SIDE_SLOT_NUM = 6
         elif vehicle.getType() == VehicleType.XD_UNLOADER:
             ONE_SIDE_SLOT_NUM = 3
-        elif vehicle.getType() in (VehicleType.HX_LOADER, VehicleType.HX_UNLOADER):
-            ONE_SIDE_SLOT_NUM = 3
 
         from_str = 'from'
         to_str = 'to'
         operation = 'GraspLoad'
-        if vehicle.getType() in (VehicleType.XD_UNLOADER, VehicleType.HX_UNLOADER):
+        if vehicle.getType() in (VehicleType.XD_UNLOADER, ):
             from_str = 'to'
             to_str = 'from'
             operation = 'GraspUnload'
@@ -207,14 +211,141 @@ class TaskManager(object):
 
         try:
             TaskManager.tom.sendOrderTask(task)
-            Replyer.typicalSend(evt, ReplyTaskStatus.GRASPING)
 
-            time.sleep(10)
-            # check 
+            time.sleep(5)
+            # check
+            sendGrasping = False
             orderState = TaskManager.getOrderTaskState(task)
             while orderState not in ('FINISHED', 'FAILED'):
-                time.sleep(2)
+                time.sleep(1.5)
                 orderState = TaskManager.getOrderTaskState(task)
+                time.sleep(0.5)
+                if False == sendGrasping:
+                    if True == TaskManager.isGraspStart(task):
+                        sendGrasping = True
+                        Replyer.typicalSend(evt, ReplyTaskStatus.GRASPING)
+
+
+
+            if orderState == 'FINISHED':
+                Replyer.typicalSend(evt, ReplyTaskStatus.SUCCESS)
+            elif orderState == 'FAILED':
+                Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
+        except Exception as e:
+            TaskManager.log.error(e)
+        finally:
+            vehicle.setState(VehicleState.IDLE)
+            TaskManager.log.info('normal task over: ' + vehicle.getName() + ' : ' + str(evt) )
+
+    @staticmethod
+    def normalHxTask(evt, vehicle):
+        '''
+        a normal hangxin task to load or unload
+        '''
+        # operation list
+        operationList = SlotAdapter.checkout(vehicle, evt)
+
+        while operationList == None:
+            if evt.getType() == DeviceType.HX_LOAD:
+                TaskManager.reloadTask(vehicle, False)
+            else:
+                TaskManager.dropTask(vehicle, False)
+            operationList = SlotAdapter.checkout(vehicle, evt)
+
+        # sequence head
+        sTrans = OrderSequenceHead()
+        sTrans.setIntendedVehicle(vehicle.getName())
+        sTrans.setFailureFatal(True)
+        sArm = OrderSequenceHead()
+        sArm.setCategory('ARM_card')
+        sArm.setFailureFatal(True)
+        
+        # order task
+        name = 'normal_hx_at_' + evt.getMachineName() + '_' + vehicle.getName() + \
+        '_' + evt.getType().name + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        task = OrderTask()
+        task.setName(name)
+        task.addOrderSequenceHead(sTrans)
+        task.addOrderSequenceHead(sArm)
+
+        # ****difference of vehicle and devices, begin****
+        from_str = 'from'
+        to_str = 'to'
+        operation = 'GraspLoad'
+        if evt.getType() == DeviceType.HX_UNLOAD:
+            from_str = 'to'
+            to_str = 'from'
+            operation = 'GraspUnload'
+
+        depth = ':0'
+        tempI = 0
+        # ****difference of vehicle and devices, end****
+
+        # transport order
+        t0 = TransportOrder()   # vehicle
+        t0LocName = 'Location_' + evt.getMachineName() + '_' + evt.getType().name + '_Transport'
+        t0.addDestination(t0LocName, 'Wait')
+
+        t1 = TransportOrder()   # arm
+        t1LocName = 'Location_' + evt.getMachineName() + '_' + evt.getType().name + '_Arm'
+        t1.addDestination(t1LocName, 'Wait')
+
+        t2 = TransportOrder()   # arm, depend t0
+        # wait to inform the production device ??
+        t2.addDestination(t1LocName, 'ArmReset')#, TransportOrder.createProterty('duration', '100'))
+        if evt.getType() == DeviceType.HX_LOAD:
+            tempI = 0
+        
+        # show if arm has taken picture for marking
+        remark = False
+
+        for v in operationList:
+            properties = []
+
+            # take picture for mark
+            if False == remark:
+                remark = True
+            
+            properties.append(TransportOrder.createProterty('remark', '0'))
+
+            # special 
+            if evt.getType() == DeviceType.HX_LOAD:
+                depth = ':' + str(tempI)
+                tempI += 1
+                if tempI == 3:
+                    tempI = 0
+            
+            properties.append(TransportOrder.createProterty(from_str, str(v[0] + 1)))
+            properties.append(TransportOrder.createProterty(to_str, evt.getMachineName()[-2:] + ':' + str(v[1]) + depth))
+            t2.addDestination(t1LocName, operation, *properties)
+
+        t2.addDestination(t1LocName, 'ArmReset')
+        t3 = TransportOrder()   # vehicle, depend t4
+        t3.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('orientation', str(orientation)))
+        t4 = TransportOrder()   # arm, depend t5
+        t4.addDestination(t1LocName, 'Wait')
+
+        task.addTransportOrder(t0, 0)
+        task.addTransportOrder(t1, 1)
+        task.addTransportOrder(t2, 1, 0)
+        task.addTransportOrder(t3, 0, 2)
+        task.addTransportOrder(t4, 1, 3)
+
+        try:
+            TaskManager.tom.sendOrderTask(task)
+
+            time.sleep(5)
+            # check
+            sendGrasping = False
+            orderState = TaskManager.getOrderTaskState(task)
+            while orderState not in ('FINISHED', 'FAILED'):
+                time.sleep(1.5)
+                orderState = TaskManager.getOrderTaskState(task)
+                time.sleep(0.5)
+                if False == sendGrasping:
+                    if True == TaskManager.isGraspStart(task):
+                        sendGrasping = True
+                        Replyer.typicalSend(evt, ReplyTaskStatus.GRASPING)
 
             if orderState == 'FINISHED':
                 Replyer.typicalSend(evt, ReplyTaskStatus.SUCCESS)
@@ -326,6 +457,15 @@ class TaskManager(object):
         return True if order is finished
         '''
         return TaskManager.tom.getOrderInfo(orderName).get('state')
+
+    @staticmethod
+    def isGraspStart(OrderTask):
+        '''
+        return is the grasp action is started
+        '''
+        state_0 = TaskManager.tom.getOrderInfo(orderTask.getOrderNameByIndex(0)).get('state')
+        state_1 = TaskManager.tom.getOrderInfo(orderTask.getOrderNameByIndex(1)).get('state')
+        return True if state_0 in ('FINISHED', 'FAILED') and state_1 in ('FINISHED', 'FAILED') else False
 
     @staticmethod
     def getOrderTaskState(orderTask):

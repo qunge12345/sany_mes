@@ -15,7 +15,8 @@ class VehicleType(Enum):
     XD_UNLOADER = 1
     HX_LOADER = 2
     HX_UNLOADER = 3
-    UNKNOW = 4
+    HX_TRANS = 4
+    UNKNOW = 5
 
 @unique
 class VehicleState(Enum):
@@ -131,6 +132,48 @@ class XdUnloaderVehicle(Vehicle):
         tl = list(map(int, info.get('DI')))
         self._availableList = [tl[12],tl[10],tl[13],tl[6],tl[11],tl[8]]
 
+class HxVehicle(Vehicle):
+    
+    def __init__(self, vehicleName):
+        super(HxVehicle, self).__init__(VehicleType.HX_TRANS, vehicleName)
+        self._loaderAvailableList = []
+        self._UnloaderAvailableList = []
+
+    @utils.mb_lock_and_catch
+    def getAvailableNum(self):
+        return 0
+
+    @utils.mb_lock_and_catch
+    def getAvailableIndexList(self):
+        return []
+
+    @utils.mb_lock_and_catch
+    def getLoaderAvailableNum(self):
+        return sum(self._loaderAvailableList)
+
+    @utils.mb_lock_and_catch
+    def getUnloaderAvailableNum(self):
+        return len(self._UnloaderAvailableList) - sum(self._UnloaderAvailableList)
+
+    @utils.mb_lock_and_catch
+    def getLoaderAvailableIndexList(self):
+        return [i for i,x in enumerate(self._loaderAvailableList) if x > 0]
+
+    @utils.mb_lock_and_catch
+    def getUnloaderAvailableIndexList(self):
+        return [i for i,x in enumerate(self._UnloaderAvailableList) if x == 0]
+        
+    @utils.mb_lock_and_catch
+    def updateByInfo(self, info):
+        tl = list(map(int, info.get('DI')))
+        # TODO
+        self._loaderAvailableList = tl[1:12]
+        self._UnloaderAvailableList = tl[16:24]
+
+    def __str__(self):
+        return self._name + " : " + self._type.name  + " : " + self._status.name + \
+        " : " + self._latastStamp.strftime('%Y-%m-%d-%H-%M-%S') + " : " + str(self._loaderAvailableList) + " : " + str(self._UnloaderAvailableList)
+
 
 class HxLoaderVehicle(Vehicle):
     
@@ -175,9 +218,11 @@ class HxUnloaderVehicle(Vehicle):
     
 if __name__ == '__main__':
     
-    hxv = XdLoaderVehicle('hexin1')
-    hxv.updateByInfo({"DI":[True,False,True,True,False,False,True,True,True,True],"status" : "ERROR"})
-    print(hxv.getAvailableIndexList())
-    print(hxv.getAvailableNum())
+    hxv = HxVehicle('hexin1')
+    hxv.updateByInfo({"DI":[True,False,True,True,False,False,True,True,False,True,True,False,False,True,True,False,True,True,False,False,True,True,False,True,True,False,False,True,True,True,True],"status" : "ERROR"})
+    print(hxv.getLoaderAvailableIndexList())
+    print(hxv.getUnloaderAvailableIndexList())
+    print(hxv.getLoaderAvailableNum())
+    print(hxv.getUnloaderAvailableNum())
     print(hxv.getStatus())
     print(hxv.getName())

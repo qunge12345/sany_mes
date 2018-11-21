@@ -36,11 +36,13 @@ class VehicleManager(object):
 
     def getIdleAndEmptyVehicles(self):
         return [v for v in self._vehicles.values() if v.getStatus() == VehicleState.IDLE and \
-        v.getAvailableNum() == 0 and v.getType() in [VehicleType.HX_LOADER, VehicleType.XD_LOADER]]
+        ((v.getAvailableNum() == 0 and v.getType() in [VehicleType.HX_LOADER, VehicleType.XD_LOADER]) or \
+        (v.getType() == VehicleType.HX_TRANS and v.getLoaderAvailableNum() == 0 ))]
 
     def getIdleAndFullVehicles(self):
         return [v for v in self._vehicles.values() if v.getStatus() == VehicleState.IDLE and \
-        v.getAvailableNum() == 0 and v.getType() in [VehicleType.HX_UNLOADER, VehicleType.XD_UNLOADER]]
+        ((v.getAvailableNum() == 0 and v.getType() in [VehicleType.HX_UNLOADER, VehicleType.XD_UNLOADER]) or \
+        (v.getType() == VehicleType.HX_TRANS and v.getUnloaderAvailableNum() == 0))]
 
     def listenHandler(self):
         '''
@@ -87,9 +89,16 @@ class VehicleManager(object):
         deviceType = deviceEvent.getType()
         for v in self._vehicles.values():
             if v.getStatus() == VehicleState.IDLE and  \
-            v.getType().value == deviceType.value and   \
+            v.getType().value == deviceType.value and  \
             v.getAvailableNum() > 0:
                 return v
+            
+            elif v.getStatus() == VehicleState.IDLE and  \
+            deviceType in (DeviceType.HX_LOAD, DeviceType.HX_UNLOAD) and  \
+            v.getType() == VehicleType.HX_TRANS:
+                return v
+
+        
 
         return None
 

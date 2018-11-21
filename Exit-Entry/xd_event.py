@@ -12,7 +12,7 @@ class DeviceType(Enum):
     XD_UNLOAD = 1
     HX_LOAD = 2
     HX_UNLOAD = 3
-    UNKNOW = 4
+    UNKNOW = 5
 
 @unique
 class EventStatus(Enum):
@@ -37,6 +37,7 @@ class XDEvent(object):
         self._machineIP = self._data.get('machine_ip')
         self._timestamp = self._data.get('time')
         self._version = self._data.get('version')
+        self._token = self._data.get('token')
 
         # decide the device type
         if self._eventSource == '0':  # XiongDi
@@ -75,6 +76,9 @@ class XDEvent(object):
 
     def getMachineStatus(self):
         return self._machineStatus
+
+    def getToken(self):
+        return self._token
 
     def __str__(self):
         return self._machineName + ":" + self._deviceType.name + ":" + self._info
