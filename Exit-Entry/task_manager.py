@@ -321,7 +321,7 @@ class TaskManager(object):
 
         t2.addDestination(t1LocName, 'ArmReset')
         t3 = TransportOrder()   # vehicle, depend t4
-        t3.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('orientation', str(orientation)))
+        t3.addDestination(t0LocName, 'Wait')
         t4 = TransportOrder()   # arm, depend t5
         t4.addDestination(t1LocName, 'Wait')
 
@@ -459,13 +459,13 @@ class TaskManager(object):
         return TaskManager.tom.getOrderInfo(orderName).get('state')
 
     @staticmethod
-    def isGraspStart(OrderTask):
+    def isGraspStart(orderTask):
         '''
         return is the grasp action is started
         '''
         state_0 = TaskManager.tom.getOrderInfo(orderTask.getOrderNameByIndex(0)).get('state')
         state_1 = TaskManager.tom.getOrderInfo(orderTask.getOrderNameByIndex(1)).get('state')
-        return True if state_0 in ('FINISHED', 'FAILED') and state_1 in ('FINISHED', 'FAILED') else False
+        return True if state_0 in ('FINISHED',) and state_1 in ('FINISHED',) else False
 
     @staticmethod
     def getOrderTaskState(orderTask):
