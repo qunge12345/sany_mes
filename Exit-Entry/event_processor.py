@@ -41,7 +41,7 @@ class EventProcessor(object):
 
         # override the out-of-date event
         for i,e in enumerate(self._queues[evtTypeValue]):
-            if e.getMachineName() == evt.getMachineName():
+            if e.getMachineName() == evt.getMachineName() and evt.getType() in (DeviceType.XD_LOAD, DeviceType.XD_UNLOAD):
                 self._log.info('event override: ' + evt.getMachineName() + ' ' + evt.getType().name +  ': ' + e.getMachineInfo() + ' --> ' + evt.getMachineInfo())
                 self._queues[evtTypeValue][i] = evt
                 return
@@ -59,9 +59,9 @@ class EventProcessor(object):
         '''
         scan the queues and create pairs of vehicle--event
         '''
-        # reload work
-        for vehicle in self._vehicles.getIdleAndEmptyVehicles():
-            TaskManager.createReloadTask(vehicle)
+        # reload work, reload when get device signal
+        # for vehicle in self._vehicles.getIdleAndEmptyVehicles():
+        #     TaskManager.createReloadTask(vehicle)
 
         for vehicle in self._vehicles.getIdleAndFullVehicles():
             TaskManager.createDropTask(vehicle)

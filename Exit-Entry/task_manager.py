@@ -278,7 +278,7 @@ class TaskManager(object):
             operation = 'GraspUnload'
 
         depth = ':0'
-        tempI = 0
+        tempI = 1
         # ****difference of vehicle and devices, end****
 
         # transport order
@@ -294,7 +294,7 @@ class TaskManager(object):
         # wait to inform the production device ??
         t2.addDestination(t1LocName, 'ArmReset')#, TransportOrder.createProterty('duration', '100'))
         if evt.getType() == DeviceType.HX_LOAD:
-            tempI = 0
+            tempI = 1
         
         # show if arm has taken picture for marking
         remark = False
@@ -312,11 +312,11 @@ class TaskManager(object):
             if evt.getType() == DeviceType.HX_LOAD:
                 depth = ':' + str(tempI)
                 tempI += 1
-                if tempI == 3:
-                    tempI = 0
+                if tempI == 4:
+                    tempI = 1
             
             properties.append(TransportOrder.createProterty(from_str, str(v[0] + 1)))
-            properties.append(TransportOrder.createProterty(to_str, evt.getMachineName()[-2:] + ':' + str(v[1]) + depth))
+            properties.append(TransportOrder.createProterty(to_str, evt.getMachineName()[-2:] + ':' + str(v[1] + 1) + depth))
             t2.addDestination(t1LocName, operation, *properties)
 
         t2.addDestination(t1LocName, 'ArmReset')
