@@ -422,13 +422,16 @@ class TaskManager(object):
         '''
 
         # confirm the location
-        location = 'Location_Unload'
+        dev = 'XD'
+        if vehicle.getType() == VehicleType.HX_TRANS:
+            dev = 'HX'
+        location = 'Location_Check_' + dev
 
         t = TransportOrder()
         t.setIntendedVehicle(vehicle.getName())        
-        t.addDestination(location, 'Wait', TransportOrder.createProterty('duration', '10000'))
+        t.addDestination(location, 'WaitKey', TransportOrder.createProterty('1', '1'))
     
-        name = 'unload_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        name = 'check_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         try:
             TaskManager.tom.sendOrder(t, name)
 
