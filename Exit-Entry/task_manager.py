@@ -159,14 +159,14 @@ class TaskManager(object):
 
         t3 = TransportOrder()   # vehicle, depend t2
         needTurn = False
-        orientation = 0
+        inverse_angle = 'false'
         for v in operationList:
             if v[0] >= ONE_SIDE_SLOT_NUM:
                 needTurn = True
                 break
         if needTurn:
-            orientation = 180
-        t3.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('orientation', str(orientation)))
+            inverse_angle = 'true'
+        t3.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('inverse_angle', inverse_angle))
 
         t4 = TransportOrder()   # arm, depend t3
         t4.addDestination(t1LocName, 'Wait')
@@ -197,7 +197,7 @@ class TaskManager(object):
 
         t4.addDestination(t1LocName, 'ArmReset')
         t5 = TransportOrder()   # vehicle, depend t4
-        t5.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('orientation', str(orientation)))
+        t5.addDestination(t0LocName, 'Wait', TransportOrder.createProterty('inverse_angle', inverse_angle))
         t6 = TransportOrder()   # arm, depend t5
         t6.addDestination(t1LocName, 'Wait')
 
@@ -379,7 +379,7 @@ class TaskManager(object):
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'true'))
         t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Right', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'false'))
-        t.addDestination(location, 'Wait', TransportOrder.createProterty('duration', '10000'))
+        t.addDestination(location, 'WaitKey', TransportOrder.createProterty('1', '1'))
         t.addDestination('Location_WD_Right', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'true'))
         t.addDestination('Location_WD_Right', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'false'))
