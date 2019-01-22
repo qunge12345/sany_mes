@@ -86,19 +86,22 @@ class VehicleManager(object):
         '''
         return a vehicle or None
         '''
+        vlist = []
+
         deviceType = deviceEvent.getType()
         for v in self._vehicles.values():
             if v.getStatus() == VehicleState.IDLE and  \
-            v.getType().value == deviceType.value and  \
-            v.getAvailableNum() > 0:
-                return v
+            v.getType().value == deviceType.value:
+                vlist.append(v)
             
             elif v.getStatus() == VehicleState.IDLE and  \
             deviceType in (DeviceType.HX_LOAD, DeviceType.HX_UNLOAD) and  \
             v.getType() == VehicleType.HX_TRANS:
-                return v
-
+                vlist.append(v)
         
+        if len(vlist) > 0:
+            vlist.sort(key = lambda v : v.getAvailableNum(), reverse = True)
+            return vlist[0]
 
         return None
 
