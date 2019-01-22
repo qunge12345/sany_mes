@@ -167,8 +167,8 @@ class HxVehicle(Vehicle):
     def updateByInfo(self, info):
         tl = list(map(int, info.get('DI')))
         # TODO
-        self._loaderAvailableList = [tl[6], tl[14], tl[4], tl[8]]
-        self._UnloaderAvailableList = [tl[11], tl[13], tl[7], tl[9], tl[3], tl[5]]
+        self._loaderAvailableList = tl[2:10]
+        self._UnloaderAvailableList = tl[10:14]
 
     def __str__(self):
         return self._name + " : " + self._type.name  + " : " + self._status.name + \
