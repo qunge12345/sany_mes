@@ -379,7 +379,7 @@ class TaskManager(object):
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'true'))
         t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Right', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'false'))
-        t.addDestination(location, 'WaitKey', TransportOrder.createProterty('1', '1'))
+        t.addDestination(location, 'WaitKey', TransportOrder.createProterty('1', 'true'))
         t.addDestination('Location_WD_Right', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'true'))
         t.addDestination('Location_WD_Right', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'false'))
@@ -429,7 +429,7 @@ class TaskManager(object):
 
         t = TransportOrder()
         t.setIntendedVehicle(vehicle.getName())        
-        t.addDestination(location, 'WaitKey', TransportOrder.createProterty('1', '1'))
+        t.addDestination(location, 'WaitKey', TransportOrder.createProterty('1', 'true'))
     
         name = 'check_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         try:
