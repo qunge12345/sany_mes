@@ -154,7 +154,7 @@ class TaskManager(object):
                         tempI = 0
                 
                 properties.append(TransportOrder.createProterty(from_str, str(v[0] + 1)))
-                properties.append(TransportOrder.createProterty(to_str, evt.getMachineName()[-2:] + ':' + str(v[1]) + depth))
+                properties.append(TransportOrder.createProterty(to_str, evt.getMachineName()[-2:] + ':' + str(v[1] + 1) + depth))
                 t2.addDestination(t1LocName, operation, *properties)
 
         t3 = TransportOrder()   # vehicle, depend t2
@@ -192,7 +192,7 @@ class TaskManager(object):
                     if tempI == 3:
                         tempI = 0
                 properties.append(TransportOrder.createProterty(from_str, str(v[0] + 1)))
-                properties.append(TransportOrder.createProterty(to_str, evt.getMachineName()[-2:] + ':' + str(v[1]) + depth))
+                properties.append(TransportOrder.createProterty(to_str, evt.getMachineName()[-2:] + ':' + str(v[1] + 1) + depth))
                 t4.addDestination(t1LocName, operation, *properties)
 
         t4.addDestination(t1LocName, 'ArmReset')
