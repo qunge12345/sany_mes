@@ -144,7 +144,7 @@ class TaskManager(object):
                 if False == remark:
                     remark = True
                 
-                properties.append(TransportOrder.createProterty('remark', '0'))
+                properties.append(TransportOrder.createProterty('remark', '1'))
 
                 # special 
                 if vehicle.getType() == VehicleType.XD_LOADER:
@@ -183,7 +183,7 @@ class TaskManager(object):
                 if False == remark:
                     remark = True
                     
-                properties.append(TransportOrder.createProterty('remark', '1'))
+                properties.append(TransportOrder.createProterty('remark', '2'))
 
                 # sepcial
                 if vehicle.getType() == VehicleType.XD_LOADER:
@@ -306,7 +306,7 @@ class TaskManager(object):
             if False == remark:
                 remark = True
             
-            properties.append(TransportOrder.createProterty('remark', '0'))
+            properties.append(TransportOrder.createProterty('remark', '1'))
 
             # special 
             if evt.getType() == DeviceType.HX_LOAD:
