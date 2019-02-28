@@ -111,7 +111,7 @@ class SlotAdapter(object):
     def checkXdUnloading(vehicle, deviceEvent):
         slotRatio = 1
         deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0:0:0'
-        deviceData = [int(deviceInfo) & 1]
+        deviceData = list(map(lambda x: 1 if int(x) > 0 else 0, deviceInfo.split(':')))
         deviceUnloadNum = sum(deviceData) * slotRatio
         availableVehicleSlotNum = vehicle.getAvailableNum()
 
@@ -189,15 +189,15 @@ class SlotAdapter(object):
 
 
 if __name__ == '__main__':
-    xdv = XdLoaderVehicle('xd')
+    xdv = XdUnloaderVehicle('xd')
     xdv.updateByInfo({"DI":[True,False,True,True,False,False,True,False,True,True,False,False,True,False,True,True,False,False,True,False,True,True,False,False,True,False,True,True,False,False,True,True,True,True],"status":1})
     de = XDEvent('{         \
     "event_source":"0",\
     "event_status":"0",\
-    "info": "1000:1",\
+    "info": "1:1110:1",\
     "machine_code": "JC-8000A-89",\
     "machine_ip":"192.168.0.222",\
-    "machine_status": "4",\
+    "machine_status": "5",\
     "time": "20180404095212",\
     "token":"asdfasdf",\
     "version": "1.0"\
