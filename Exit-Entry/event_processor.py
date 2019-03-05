@@ -41,8 +41,10 @@ class EventProcessor(object):
 
         # override the out-of-date event
         for i,e in enumerate(self._queues[evtTypeValue]):
+            # if e.getMachineName() == evt.getMachineName():
             if e.getMachineName() == evt.getMachineName() and evt.getType() in (DeviceType.XD_LOAD, DeviceType.XD_UNLOAD):
-                self._log.info('event override: ' + evt.getMachineName() + ' ' + evt.getType().name +  ': ' + e.getMachineInfo() + ' --> ' + evt.getMachineInfo())
+                evt.mergeInfoFrom(self._queues[evtTypeValue][i])
+                self._log.info('event merge and override: ' + evt.getMachineName() + ' ' + evt.getType().name +  ': ' + e.getMachineInfo() + ' --> ' + evt.getMachineInfo())
                 self._queues[evtTypeValue][i] = evt
                 return
 

@@ -1,10 +1,11 @@
 
 from enum import Enum, unique
 import json
-import utils
 import sys
-
 sys.path.append("..")
+sys.path.append('.')
+
+import utils
 
 @unique
 class DeviceType(Enum):
@@ -80,6 +81,26 @@ class XDEvent(object):
     def getToken(self):
         return self._token
 
+    def mergeInfoFrom(self, evt):
+        '''
+        merge the given event info to this event
+        '''
+        # function to merge machine info
+        def mergeList(*matrix):
+            max_len = max((len(l) for l in matrix))
+            new_matrix = list(map(lambda l:l + [0]*(max_len - len(l)), matrix))
+            sumList = [0] * len(new_matrix[0])
+            for i in range(len(new_matrix)):
+                for j in range(len(new_matrix[0])):
+                    sumList[j] = sumList[j] + new_matrix[i][j]
+            return sumList
+
+        selfInfo = list(map(int, self._info.split(':')))
+        evtInfo = list(map(int, evt.getMachineInfo().split(':')))
+        newInfo = mergeList(selfInfo, evtInfo)
+        # print(':'.join(list(map(str, newInfo))))
+        self._info = ':'.join(list(map(str, newInfo)))
+
     def __str__(self):
         return self._machineName + ":" + self._deviceType.name + ":" + self._info
         
@@ -87,4 +108,29 @@ class XDEvent(object):
 
 
 if __name__ == '__main__':
-    pass
+    d1 = XDEvent('{         \
+    "event_source":"0",\
+    "event_status":"0",\
+    "info": "1:0",\
+    "machine_code": "JC-8000A-89",\
+    "machine_ip":"192.168.0.222",\
+    "machine_status": "5",\
+    "time": "20180404095212",\
+    "token":"asdfasdf",\
+    "version": "1.0"\
+    }')
+
+    d2 = XDEvent('{         \
+    "event_source":"0",\
+    "event_status":"0",\
+    "info": "0:1",\
+    "machine_code": "JC-8000A-89",\
+    "machine_ip":"192.168.0.222",\
+    "machine_status": "5",\
+    "time": "20180404095212",\
+    "token":"asdfasdf",\
+    "version": "1.0"\
+    }')
+
+    d1.mergeInfoFrom(d2)
+    print(d1.getMachineInfo())

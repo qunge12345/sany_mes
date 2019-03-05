@@ -161,7 +161,7 @@ class SlotAdapter(object):
     def checkHxUnloading(vehicle, deviceEvent):
         slotRatio = 1
         deviceInfo = deviceEvent.getMachineInfo()   # as str: '1:0:0:0'
-        deviceData = list(map(int, deviceInfo.split(':')))
+        deviceData = list(map(lambda x: 1 if int(x) > 0 else 0, deviceInfo.split(':')))
         deviceUnloadNum = sum(deviceData) * slotRatio
         
         availableVehicleSlotNum = 0
