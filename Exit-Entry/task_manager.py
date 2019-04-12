@@ -21,7 +21,7 @@ from replyer import Replyer, ReplyTaskStatus
 
 class TaskManager(object):
 
-    tom = TransportOrderManager(serverIP = "192.168.2.100", serverPort = 55200)
+    tom = TransportOrderManager(serverIP = "127.0.0.1", serverPort = 55200)
     log = utils.logger().getLogger('task manager')
 
     @staticmethod
@@ -235,6 +235,7 @@ class TaskManager(object):
             TaskManager.log.error(e)
         finally:
             vehicle.setState(VehicleState.IDLE)
+            Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
             TaskManager.log.info('normal task over: ' + vehicle.getName() + ' : ' + str(evt) )
 
     @staticmethod
@@ -355,6 +356,7 @@ class TaskManager(object):
             TaskManager.log.error(e)
         finally:
             vehicle.setState(VehicleState.IDLE)
+            Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
             TaskManager.log.info('normal task over: ' + vehicle.getName() + ' : ' + str(evt) )
 
     @staticmethod
