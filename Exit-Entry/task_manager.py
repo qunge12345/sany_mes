@@ -233,9 +233,9 @@ class TaskManager(object):
                 Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
         except Exception as e:
             TaskManager.log.error(e)
+            Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
         finally:
             vehicle.setState(VehicleState.IDLE)
-            Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
             TaskManager.log.info('normal task over: ' + vehicle.getName() + ' : ' + str(evt) )
 
     @staticmethod
@@ -354,9 +354,9 @@ class TaskManager(object):
                 Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
         except Exception as e:
             TaskManager.log.error(e)
+            Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
         finally:
             vehicle.setState(VehicleState.IDLE)
-            Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
             TaskManager.log.info('normal task over: ' + vehicle.getName() + ' : ' + str(evt) )
 
     @staticmethod
