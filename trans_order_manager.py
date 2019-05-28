@@ -109,6 +109,12 @@ class TransportOrderManager(object):
         res = requests.get(reqUri)
         return res.json()
 
+    @utils.mb_lock_and_catch
+    def getVehiclesInfo(self):
+        reqUri = self._reqPath + 'vehicles'
+        res = requests.get(reqUri)
+        return res.json()
+
 if __name__ == '__main__':
     import time
     tm = TransportOrderManager()

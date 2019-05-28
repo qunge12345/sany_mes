@@ -30,14 +30,18 @@ class TaskManager(object):
         create a thread of normal task
         '''
         TaskManager.log.info('normal task created: ' + str(evt) + ' --- ' + str(vehicle))
-        vehicle.setState(VehicleState.PROCEEDING)
+        vehicle.setStatus(VehicleState.PROCEEDING)
         Replyer.typicalSend(evt, ReplyTaskStatus.EXECUTING)
 
         thisFunc = TaskManager.normalXdTask
         if evt.getType() in (DeviceType.HX_LOAD, DeviceType.HX_UNLOAD):
             thisFunc = TaskManager.normalHxTask
 
-        nt = threading.Thread(target = thisFunc, name = 'normal_task_at_%s' % evt.getMachineName(), args = (evt, vehicle))
+        taskType = 'Upload'
+        if evt.getType() in (DeviceType.XD_UNLOAD, DeviceType.HX_UNLOAD):
+            taskType = 'Download'
+            
+        nt = threading.Thread(target = thisFunc, name = '%s-at-%s' % (taskType, evt.getMachineName()), args = (evt, vehicle))
         nt.setDaemon(True)
         nt.start()
 
@@ -47,9 +51,9 @@ class TaskManager(object):
         create a thread of reload task
         '''
         TaskManager.log.info('reload task created: ' + str(vehicle))
-        vehicle.setState(VehicleState.PROCEEDING)
+        vehicle.setStatus(VehicleState.PROCEEDING)
 
-        rt = threading.Thread(target = TaskManager.reloadTask, name = 'reload_task_at_%s' % vehicle.getName(), args = (vehicle,))
+        rt = threading.Thread(target = TaskManager.reloadTask, name = 'Reload-at-%s' % vehicle.getName(), args = (vehicle,))
         rt.setDaemon(True)
         rt.start()
 
@@ -59,9 +63,9 @@ class TaskManager(object):
         create a thread of drop task
         '''
         TaskManager.log.info('drop task created: ' + str(vehicle))
-        vehicle.setState(VehicleState.PROCEEDING)
+        vehicle.setStatus(VehicleState.PROCEEDING)
 
-        dt = threading.Thread(target = TaskManager.dropTask, name = 'drop_task_at_%s' % vehicle.getName(), args = (vehicle,))
+        dt = threading.Thread(target = TaskManager.dropTask, name = 'Drop-at-%s' % vehicle.getName(), args = (vehicle,))
         dt.setDaemon(True)
         dt.start()
 
@@ -91,7 +95,11 @@ class TaskManager(object):
         sArm.setFailureFatal(True)
         
         # order task
-        name = 'normal_xd_at_' + evt.getMachineName() + '_' + vehicle.getName() + \
+        taskType = 'Upload'
+        if evt.getType() == DeviceType.XD_UNLOAD:
+            taskType = 'Download'
+
+        name = taskType + '-XD-at_' + evt.getMachineName() + '_' + vehicle.getName() + \
         '_' + evt.getType().name + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         task = OrderTask()
         task.setName(name)
@@ -225,8 +233,6 @@ class TaskManager(object):
                         sendGrasping = True
                         Replyer.typicalSend(evt, ReplyTaskStatus.GRASPING)
 
-
-
             if orderState == 'FINISHED':
                 Replyer.typicalSend(evt, ReplyTaskStatus.SUCCESS)
             elif orderState == 'FAILED':
@@ -235,7 +241,7 @@ class TaskManager(object):
             TaskManager.log.error(e)
             Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
         finally:
-            vehicle.setState(VehicleState.IDLE)
+            vehicle.setStatus(VehicleState.IDLE)
             TaskManager.log.info('normal task over: ' + vehicle.getName() + ' : ' + str(evt) )
 
     @staticmethod
@@ -262,7 +268,11 @@ class TaskManager(object):
         sArm.setFailureFatal(True)
         
         # order task
-        name = 'normal_hx_at_' + evt.getMachineName() + '_' + vehicle.getName() + \
+        taskType = 'Upload'
+        if evt.getType() == DeviceType.HX_UNLOAD:
+            taskType = 'Download'
+
+        name = taskType + '-HX-at_' + evt.getMachineName() + '_' + vehicle.getName() + \
         '_' + evt.getType().name + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         task = OrderTask()
         task.setName(name)
@@ -356,7 +366,7 @@ class TaskManager(object):
             TaskManager.log.error(e)
             Replyer.typicalSend(evt, ReplyTaskStatus.FAILED)
         finally:
-            vehicle.setState(VehicleState.IDLE)
+            vehicle.setStatus(VehicleState.IDLE)
             TaskManager.log.info('normal task over: ' + vehicle.getName() + ' : ' + str(evt) )
 
     @staticmethod
@@ -390,7 +400,7 @@ class TaskManager(object):
         t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Left', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'false'))
 
-        name = 'reload_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        name = 'Reload-' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
         try:
             TaskManager.tom.sendOrder(t, name)
@@ -411,7 +421,7 @@ class TaskManager(object):
             TaskManager.log.error(e)
         finally:
             if independent == True:
-                vehicle.setState(VehicleState.IDLE)
+                vehicle.setStatus(VehicleState.IDLE)
                 TaskManager.log.info('reload task over: ' + vehicle.getName())
 
 
@@ -424,16 +434,14 @@ class TaskManager(object):
         '''
 
         # confirm the location
-        dev = 'XD'
-        if vehicle.getType() == VehicleType.HX_TRANS:
-            dev = 'HX'
+        dev = vehicle.getType().name[0:2] # 'XD' or 'HX'
         location = 'Location_Check_' + dev
 
         t = TransportOrder()
         t.setIntendedVehicle(vehicle.getName())        
         t.addDestination(location, 'WaitKey', TransportOrder.createProterty('1', 'true'))
     
-        name = 'check_' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        name = 'Drop-' + vehicle.getName() + '_' + datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         try:
             TaskManager.tom.sendOrder(t, name)
 
@@ -453,7 +461,7 @@ class TaskManager(object):
             TaskManager.log.error(e)
         finally:
             if independent == True:
-                vehicle.setState(VehicleState.IDLE)
+                vehicle.setStatus(VehicleState.IDLE)
                 TaskManager.log.info('drop task over: ' + vehicle.getName())
 
     @staticmethod
@@ -480,7 +488,7 @@ class TaskManager(object):
         return TaskManager.tom.getOrderInfo(orderTask.getOrderNameByIndex(orderTask.getOrdersNum() - 1)).get('state')
 
 if __name__ == '__main__':
-    xdv = XdLoaderVehicle('Carrier_XdLoaderVehicle_1')
+    xdv = XdUploader('XdUploader-01')
     xdv.updateByInfo({"DI":[True,False,True,True,False,True,True,True,True,True],"status":"ERROR"})
 
     de = XDEvent('{         \
@@ -493,6 +501,6 @@ if __name__ == '__main__':
     "time": "20180404095212",\
     "version": "1.0"\
     }')
-    TaskManager.createNormalTask(de, xdv)
+    TaskManager.normalXdTask(de, xdv)
     # TaskManager.createReloadTask(xdv)
     time.sleep(5)

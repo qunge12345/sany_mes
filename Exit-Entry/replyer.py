@@ -60,3 +60,16 @@ class Replyer(object):
             Replyer.log.error(e)
         finally:
             Replyer.soapLock.release()
+    
+    @staticmethod
+    def sendMessage(data):
+        url = b"http://192.168.2.30:8733/TraQRCodeService?wsdl"
+        Replyer.soapLock.acquire()
+        try:
+            # Replyer.log.info("send: " + data)
+            ret = Replyer.soaplib.func_send_data(data.encode('utf-8'), url)
+        except Exception as e:
+            Replyer.log.error(e)
+        finally:
+            Replyer.soapLock.release()
+

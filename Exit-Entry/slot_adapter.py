@@ -77,7 +77,9 @@ class SlotAdapter(object):
         if availableVehicleSlotNum < deviceLoadNum:
             SlotAdapter.log.info('no enough passport on vehicle %s' % vehicle.getName())
             return None
-        
+        # record the number
+        vehicle.addUpNo(deviceLoadNum)
+        # calculate the pairs
         availableVehicleSlotIndexList = vehicle.getAvailableIndexList()
         actualDeviceSlotIndexList = [x for x in [i for i,x in enumerate(deviceData) if x > 0] for i in range(deviceData[x])]
         actualVehicleSlotIndexList = availableVehicleSlotIndexList[:len(actualDeviceSlotIndexList)]
@@ -119,6 +121,9 @@ class SlotAdapter(object):
             SlotAdapter.log.info('no enough slot on vehicle %s' % vehicle.getName())
             return None
 
+        # record the number
+        vehicle.addDownNo(deviceUnloadNum)
+        # calculate the pairs
         availableVehicleSlotIndexList = vehicle.getAvailableIndexList()
         actualDeviceSlotIndexList = [x for x in [i for i,x in enumerate(deviceData) if x > 0] for i in range(slotRatio)]
         actualVehicleSlotIndexList = availableVehicleSlotIndexList[:len(actualDeviceSlotIndexList)]
@@ -144,6 +149,9 @@ class SlotAdapter(object):
             SlotAdapter.log.info('no enough card on vehicle %s' % vehicle.getName())
             return None
 
+        # record the number
+        vehicle.addUpNo(deviceLoadNum)
+        # calculate the pairs
         availableVehicleSlotIndexList = []
         if VehicleType.HX_TRANS == vehicle.getType():
             availableVehicleSlotIndexList = vehicle.getLoaderAvailableIndexList()
@@ -174,6 +182,9 @@ class SlotAdapter(object):
             SlotAdapter.log.info('no enough slot on vehicle %s' % vehicle.getName())
             return None
 
+        # record the number
+        vehicle.addDownNo(deviceUnloadNum)
+        # calculate the pairs
         availableVehicleSlotIndexList = []
         if VehicleType.HX_TRANS == vehicle.getType():
             availableVehicleSlotIndexList = vehicle.getUnloaderAvailableIndexList()
@@ -189,7 +200,7 @@ class SlotAdapter(object):
 
 
 if __name__ == '__main__':
-    xdv = XdUnloaderVehicle('xd')
+    xdv = XdDownloader('xd')
     xdv.updateByInfo({"DI":[True,False,True,True,False,False,True,False,True,True,False,False,True,False,True,True,False,False,True,False,True,True,False,False,True,False,True,True,False,False,True,True,True,True],"status":1})
     de = XDEvent('{         \
     "event_source":"0",\

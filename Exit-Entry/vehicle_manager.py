@@ -10,11 +10,14 @@ import json
 import time
 import datetime
 import threading
+from replyer import Replyer
+from trans_order_manager import TransportOrderManager
 
 class VehicleManager(object):
     '''
     manager of vehicles
     '''
+    tom = TransportOrderManager(serverIP = "127.0.0.1", serverPort = 55200)
 
     def __init__(self, loggerName = 'vehicle manager'):
         self._vehicles = {}
@@ -34,6 +37,10 @@ class VehicleManager(object):
         mt.setDaemon(True)
         mt.start()
 
+        rt = threading.Thread(target = VehicleManager.realtimeReportHandler, name = 'vehicle_realtime_report' , args = (self,))
+        rt.setDaemon(True)
+        rt.start()
+
     def getIdleAndEmptyVehicles(self):
         return [v for v in self._vehicles.values() if v.getStatus() == VehicleState.IDLE and \
         ((v.getAvailableNum() == 0 and v.getType() in [VehicleType.HX_LOADER, VehicleType.XD_LOADER]) or \
@@ -51,18 +58,18 @@ class VehicleManager(object):
         # establish redis
         r = redis.StrictRedis(host = '192.168.2.100', port = 6379, db = 0)
         p = r.pubsub()
-        p.psubscribe("SW:VehicleStatus:Carrier_*")
+        p.psubscribe("SW:VehicleStatus:*")
 
         #listening
         for item in p.listen():
             bmsg = item.get('data',b'')
             if isinstance(bmsg, bytes):
                 msg = json.loads(bmsg.decode())
-                vehicleName = msg.get('vehicle_id') # e.g. Carrier:XdLoaderVehicle:2
+                vehicleName = msg.get('vehicle_id')
 
                 if self._vehicles.get(vehicleName) is None:
                     # a new vehicle is added
-                    self._vehicles[vehicleName] = globals()[vehicleName.split('_')[1]](vehicleName)
+                    self._vehicles[vehicleName] = globals()[vehicleName.split('-')[0]](vehicleName)
 
                 self._vehicles[vehicleName].setTimestamp(datetime.datetime.now())
                 self._vehicles[vehicleName].updateByInfo(msg)
@@ -73,14 +80,52 @@ class VehicleManager(object):
         set timeout for any vehicle which has been online ever before
         '''
         while True:
-            # sleep for 2 second
-            time.sleep(2.0)
+            # sleep for 1 second
+            time.sleep(1.0)
             now = datetime.datetime.now()
+            # update vehicles' info
+            vehicles = []
+            try:
+                vehicles = VehicleManager.tom.getVehiclesInfo()
+            except Exception as e:
+                self._log.error(e)
             # loop through the vehicles
             for v in self._vehicles.values():
-                if v.getStatus() != VehicleState.UNVAILABLE and (now - v.getLatastStamp()).seconds > 10:
+                if (now - v.getLatastStamp()).seconds > 10:
                     self._log.warn('vehicle %s lost information' % v.getName())
-                    # v.setState(VehicleState.UNVAILABLE)
+                    v.setOnline(False)
+                orderNames = [ve.get('transportOrder') for ve in vehicles if ve.get('name') == v.getName()]
+                tempStr = ''
+                if len(orderNames) > 0 and None != orderNames[0]:
+                    orderName = orderNames[0]
+                    tempStrs = orderName.split('-')
+                    if len(tempStrs) > 0:
+                        tempStr = tempStrs[0]
+
+                if True == v.updateReportState(tempStr):
+                    Replyer.sendMessage(v.getStateReportJson())
+
+
+    def realtimeReportHandler(self):
+        '''
+        realtime report thread
+        '''
+        while True:
+            # sleep for 5 second
+            time.sleep(5.0)
+
+            # update vehicles' realtime data
+            vehicles = []
+            for v in self._vehicles.values():
+                vehicles.append(v.getRealtimeReport())
+
+            # send
+            report = {}
+            report['msgT'] = 2
+            report['data'] = vehicles
+            Replyer.sendMessage(json.dumps(report))
+
+
 
     def getAvailableVehicleByEvent(self, deviceEvent):
         '''
