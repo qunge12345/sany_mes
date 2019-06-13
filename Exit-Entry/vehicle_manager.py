@@ -112,7 +112,7 @@ class VehicleManager(object):
         '''
         while True:
             # sleep for 5 second
-            time.sleep(5.0)
+            time.sleep(1.0)
 
             # update vehicles' realtime data
             vehicles = []
@@ -130,6 +130,8 @@ class VehicleManager(object):
     def getAvailableVehicleByEvent(self, deviceEvent):
         '''
         return a vehicle or None
+
+        TODO use config file to bind vehicles and machines !!!!!!!!!!!!!!!!!
         '''
         vlist = []
 

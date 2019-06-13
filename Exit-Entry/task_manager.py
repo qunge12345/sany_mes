@@ -92,6 +92,8 @@ class TaskManager(object):
         sTrans.setFailureFatal(True)
         sArm = OrderSequenceHead()
         sArm.setCategory('ARM_passport')
+        # Use machine name
+        # sArm.setCategory(evt.getMachineName())
         sArm.setFailureFatal(True)
         
         # order task
@@ -225,7 +227,7 @@ class TaskManager(object):
             sendGrasping = False
             orderState = TaskManager.getOrderTaskState(task)
             while orderState not in ('FINISHED', 'FAILED'):
-                time.sleep(1.5)
+                time.sleep(0.5)
                 orderState = TaskManager.getOrderTaskState(task)
                 time.sleep(0.5)
                 if False == sendGrasping:
@@ -265,6 +267,8 @@ class TaskManager(object):
         sTrans.setFailureFatal(True)
         sArm = OrderSequenceHead()
         sArm.setCategory('ARM_card')
+        # Use machine name
+        # sArm.setCategory(evt.getMachineName())
         sArm.setFailureFatal(True)
         
         # order task
@@ -350,7 +354,7 @@ class TaskManager(object):
             sendGrasping = False
             orderState = TaskManager.getOrderTaskState(task)
             while orderState not in ('FINISHED', 'FAILED'):
-                time.sleep(1.5)
+                time.sleep(0.5)
                 orderState = TaskManager.getOrderTaskState(task)
                 time.sleep(0.5)
                 if False == sendGrasping:
@@ -410,7 +414,7 @@ class TaskManager(object):
 
             orderState = TaskManager.getOrderState(name)
             while orderState not in ('FINISHED', 'FAILED'):
-                time.sleep(5)
+                time.sleep(2)
                 orderState = TaskManager.getOrderState(name)
 
             if orderState == 'FINISHED':
@@ -450,7 +454,7 @@ class TaskManager(object):
 
             orderState = TaskManager.getOrderState(name)
             while orderState not in ('FINISHED', 'FAILED'):
-                time.sleep(5)
+                time.sleep(2)
                 orderState = TaskManager.getOrderState(name)
 
             if orderState == 'FINISHED':

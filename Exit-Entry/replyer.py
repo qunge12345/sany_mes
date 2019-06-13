@@ -7,6 +7,7 @@ import threading
 from ctypes import *
 from enum import Enum, unique
 from xd_event import *
+import requests
 
 @unique
 class ReplyTaskStatus(Enum):
@@ -61,15 +62,43 @@ class Replyer(object):
         finally:
             Replyer.soapLock.release()
     
+    # @staticmethod
+    # def sendMessage(data):
+    #     url = b"http://192.168.2.30:8733/TraQRCodeService?wsdl"
+    #     Replyer.soapLock.acquire()
+    #     try:
+    #         # Replyer.log.info("send: " + data)
+    #         sdata = rb'{"data":"%s","id":"","type":"2"}' % data.replace('"',r'\"').encode('utf-8')
+    #         ret = Replyer.soaplib.func_send_data(sdata, url)
+    #     except Exception as e:
+    #         Replyer.log.error(e)
+    #     finally:
+    #         Replyer.soapLock.release()
+
     @staticmethod
     def sendMessage(data):
-        url = b"http://192.168.2.30:8733/TraQRCodeService?wsdl"
-        Replyer.soapLock.acquire()
+        url = b'http://localhost:8082/api/saveRobotInfo'
+        postData = data.encode('utf-8')
+        Replyer.log.info('POST to ' + url.decode())
+        Replyer.log.info('DATA is ' + postData.decode())
         try:
-            # Replyer.log.info("send: " + data)
-            ret = Replyer.soaplib.func_send_data(data.encode('utf-8'), url)
+            req = requests.post(url = url, data = postData, timeout = 1.0)
+            Replyer.log.info('Response code ' + str(req.status_code) + ' ' + req.content.decode('utf-8'))
         except Exception as e:
             Replyer.log.error(e)
-        finally:
-            Replyer.soapLock.release()
 
+if __name__ == '__main__':
+    d1 = XDEvent('{         \
+    "event_source":"0",\
+    "event_status":"0",\
+    "info": "1:0",\
+    "machine_code": "JC-8000A-89",\
+    "machine_ip":"192.168.0.222",\
+    "machine_status": "5",\
+    "time": "20180404095212",\
+    "token":"asdfasdf",\
+    "version": "1.0"\
+    }')
+
+    # Replyer.typicalSend(d1, ReplyTaskStatus.WAIT)
+    Replyer.sendMessage(json.dumps({'aaa':'bbb','ccc':2}))
