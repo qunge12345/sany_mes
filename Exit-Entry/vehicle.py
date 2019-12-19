@@ -85,12 +85,32 @@ class Vehicle(metaclass = abc.ABCMeta):
         self._historyDownNo = 0
         self._historyQuan = 0
 
+        # last machine info
+        self._lastMachineName = ''
+        self._lastDeviceTypeName = ''
+
     @abc.abstractmethod
     def updateByInfo(self, info):
         pass
 
         # update the timestamp
         self._latastStamp = datetime.datetime.now()
+
+    @utils.mb_lock_and_catch
+    def setLastMachineName(self, name):
+        self._lastMachineName = name
+    
+    @utils.mb_lock_and_catch
+    def getLastMachineName(self):
+        return self._lastMachineName
+    
+    @utils.mb_lock_and_catch
+    def setLastDeviceTypeName(self, typeName):
+        self._lastDeviceTypeName = typeName
+    
+    @utils.mb_lock_and_catch
+    def getLastDeviceTypeName(self):
+        return self._lastDeviceTypeName
 
     @utils.mb_lock_and_catch
     def setStatus(self, status):
@@ -141,6 +161,8 @@ class Vehicle(metaclass = abc.ABCMeta):
         report['down'] = self._downNo
         report['hisDown'] = self._historyDownNo
         report['time'] = self._runTime
+        report['odo'] = self._odo
+        report['hisOdo'] = self._historyOdo
         report['hisTime'] = self._historyTime
         report['batLevel'] = self._batLevel
         report['batVol'] = self._batVol
@@ -239,11 +261,7 @@ class Vehicle(metaclass = abc.ABCMeta):
         else:
             state = ReportState.R
 
-        if self._state != state:
-            self._state = state
-            return True
-
-        return False
+        self._state = state
 
     
 class XdUploader(Vehicle):
@@ -262,10 +280,9 @@ class XdUploader(Vehicle):
 
     @utils.mb_lock_and_catch
     def updateByInfo(self, info):
-        self._availableList = list(map(int, info.get('DI')))[2:14]
-        t1 = self._availableList[2]
-        self._availableList[2] = self._availableList[0]
-        self._availableList[0] = t1
+        tl = list(map(int, info.get('DI')))
+        # TODO
+        self._availableList = tl[32:44]
 
         self.updateCommonInfo(info)
 
@@ -285,7 +302,8 @@ class XdDownloader(Vehicle):
     @utils.mb_lock_and_catch
     def updateByInfo(self, info):
         tl = list(map(int, info.get('DI')))
-        self._availableList = [tl[12],tl[10],tl[13],tl[6],tl[11],tl[8]]
+        # TODO
+        self._availableList = tl[32:40]
 
         self.updateCommonInfo(info)
 
@@ -324,8 +342,9 @@ class HxLoader(Vehicle):
     def updateByInfo(self, info):
         tl = list(map(int, info.get('DI')))
         # TODO
-        self._loaderAvailableList = tl[2:10]
-        self._UnloaderAvailableList = tl[10:14]
+        self._loaderAvailableList = tl[32:44]
+        self._UnloaderAvailableList = tl[44:56]
+        self._availableList = tl[32:56]
 
         self.updateCommonInfo(info)
 

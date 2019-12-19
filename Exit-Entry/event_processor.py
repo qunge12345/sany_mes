@@ -40,15 +40,21 @@ class EventProcessor(object):
         evtTypeValue = evt.getType().value
 
         # override the out-of-date event
-        for i,e in enumerate(self._queues[evtTypeValue]):
-            # if e.getMachineName() == evt.getMachineName():
-            if e.getMachineName() == evt.getMachineName() and evt.getType() in (DeviceType.XD_LOAD, DeviceType.XD_UNLOAD):
-                evt.mergeInfoFrom(self._queues[evtTypeValue][i])
-                self._log.info('event merge and override: ' + evt.getMachineName() + ' ' + evt.getType().name +  ': ' + e.getMachineInfo() + ' --> ' + evt.getMachineInfo())
-                self._queues[evtTypeValue][i] = evt
-                return
-
-        self._queues[evtTypeValue].append(evt)
+        isMerge = False
+        currentQueue = self._queues[evtTypeValue]
+        
+        # only Xiong Di needs to merge info
+        if evt.getType() in (DeviceType.XD_LOAD, DeviceType.XD_UNLOAD):
+            for i,e in enumerate(currentQueue):
+                if e.getMachineName() == evt.getMachineName():
+                    evt.mergeInfoFrom(currentQueue[i])
+                    self._log.info('event merge and override: ' + evt.getMachineName() + ' ' + evt.getType().name +  ': ' + e.getMachineInfo() + ' --> ' + evt.getMachineInfo())
+                    currentQueue[i] = evt
+                    isMerge = True
+                    break
+        
+        if False == isMerge:
+            currentQueue.append(evt)
 
     @utils.mb_lock_and_catch
     def show(self):
@@ -74,6 +80,9 @@ class EventProcessor(object):
             if len(queue) == 0:
                 continue
 
+            # check event nearby vehicle TODO
+
+            # 
             evt = queue[0]
             vehicle = self._vehicles.getAvailableVehicleByEvent(evt)
 
@@ -89,7 +98,7 @@ class EventProcessor(object):
         loop the scan task
         '''
         while True:
-            time.sleep(1.0)
+            time.sleep(0.5)
             self.scan()
 
 
@@ -97,14 +106,19 @@ class EventProcessor(object):
         st = threading.Thread(target = EventProcessor.scaningHandler, name = 'event scaning' , args = (self,))
         st.setDaemon(True)
         st.start()
-            
-
-        
-
-
 
 if __name__ == '__main__':
-    vm = VehicleManager()
-    vm.initialize()
-    ep = EventProcessor(vm)
-    ep.start()
+    # vm = VehicleManager()
+    # vm.initialize()
+    # ep = EventProcessor(vm)
+    # ep.start()
+    d = deque(maxlen = EventProcessor.MAX_LEN)
+    d.append('aa')
+    d.append('bb')
+    d.append('cc')
+    print(d)
+    t = d[2]
+    d.remove(t)
+    d.appendleft(t)
+    print(d)
+

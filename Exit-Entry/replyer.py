@@ -62,22 +62,26 @@ class Replyer(object):
         finally:
             Replyer.soapLock.release()
     
-    # @staticmethod
-    # def sendMessage(data):
-    #     url = b"http://192.168.2.30:8733/TraQRCodeService?wsdl"
-    #     Replyer.soapLock.acquire()
-    #     try:
-    #         # Replyer.log.info("send: " + data)
-    #         sdata = rb'{"data":"%s","id":"","type":"2"}' % data.replace('"',r'\"').encode('utf-8')
-    #         ret = Replyer.soaplib.func_send_data(sdata, url)
-    #     except Exception as e:
-    #         Replyer.log.error(e)
-    #     finally:
-    #         Replyer.soapLock.release()
+    @staticmethod
+    def sendMessageToLightIsolation(data):
+        url = b"http://192.168.2.30:8733/TraQRCodeService?wsdl"
+        Replyer.soapLock.acquire()
+        try:
+            # Replyer.log.info("send: " + data)
+            sdata = rb'{"data":"%s","id":"","type":"2"}' % data.replace('"',r'\"').encode('utf-8')
+            ret = Replyer.soaplib.func_send_data(sdata, url)
+        except Exception as e:
+            Replyer.log.error(e)
+        finally:
+            Replyer.soapLock.release()
 
     @staticmethod
     def sendMessage(data):
-        url = b'http://localhost:8082/api/saveRobotInfo'
+        msgT = json.loads(data).get('msgT', 1)
+        if (msgT == 1):
+            url = b'http://localhost:8082/api/saveRobotInfo'
+        else:
+            url = b'http://localhost:8082/api/saveRobotRealInfo'
         postData = data.encode('utf-8')
         Replyer.log.info('POST to ' + url.decode())
         Replyer.log.info('DATA is ' + postData.decode())

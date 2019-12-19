@@ -12,6 +12,7 @@ import datetime
 import threading
 from replyer import Replyer
 from trans_order_manager import TransportOrderManager
+import traceback
 
 class VehicleManager(object):
     '''
@@ -80,30 +81,40 @@ class VehicleManager(object):
         set timeout for any vehicle which has been online ever before
         '''
         while True:
-            # sleep for 1 second
-            time.sleep(1.0)
+            # sleep for 2 second
+            time.sleep(2.0)
             now = datetime.datetime.now()
             # update vehicles' info
             vehicles = []
             try:
                 vehicles = VehicleManager.tom.getVehiclesInfo()
             except Exception as e:
-                self._log.error(e)
+                self._log.error('get vehicles information error: ' + e)
+                self._log.error(traceback.format_exc())
+                return
             # loop through the vehicles
             for v in self._vehicles.values():
-                if (now - v.getLatastStamp()).seconds > 10:
-                    self._log.warn('vehicle %s lost information' % v.getName())
-                    v.setOnline(False)
-                orderNames = [ve.get('transportOrder') for ve in vehicles if ve.get('name') == v.getName()]
-                tempStr = ''
-                if len(orderNames) > 0 and None != orderNames[0]:
-                    orderName = orderNames[0]
-                    tempStrs = orderName.split('-')
-                    if len(tempStrs) > 0:
-                        tempStr = tempStrs[0]
+                try:
+                    if (now - v.getLatastStamp()).seconds > 10:
+                        self._log.warn('vehicle %s lost information' % v.getName())
+                        v.setOnline(False)
+                    orderNames = [ve.get('transportOrder') for ve in vehicles if ve.get('name') == v.getName()]
+                    tempStr = ''
+                    self._log.info(v.getName() + ' has orders:')
+                    self._log.info(orderNames)
+                    if len(orderNames) > 0 and None != orderNames[0]:
+                        orderName = orderNames[0]
+                        self._log.info(v.getName() + ' gets order name:' + orderName)
+                        tempStrs = orderName.split('-')
+                        if len(tempStrs) > 0:
+                            tempStr = tempStrs[0]
+                            self._log.info(v.getName() + ' gets order first string:' + tempStr)
 
-                if True == v.updateReportState(tempStr):
+                    v.updateReportState(tempStr)
                     Replyer.sendMessage(v.getStateReportJson())
+                except Exception as e:
+                    self._log.error(traceback.format_exc())
+                    self._log.error(e)
 
 
     def realtimeReportHandler(self):

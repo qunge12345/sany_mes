@@ -31,6 +31,8 @@ class TaskManager(object):
         '''
         TaskManager.log.info('normal task created: ' + str(evt) + ' --- ' + str(vehicle))
         vehicle.setStatus(VehicleState.PROCEEDING)
+        vehicle.setLastMachineName(evt.getMachineName())
+        vehicle.setLastDeviceTypeName(evt.getType().name)
         Replyer.typicalSend(evt, ReplyTaskStatus.EXECUTING)
 
         thisFunc = TaskManager.normalXdTask
@@ -91,9 +93,8 @@ class TaskManager(object):
         sTrans.setIntendedVehicle(vehicle.getName())
         sTrans.setFailureFatal(True)
         sArm = OrderSequenceHead()
-        sArm.setCategory('ARM_passport')
         # Use machine name
-        # sArm.setCategory(evt.getMachineName())
+        sArm.setCategory(evt.getMachineName())
         sArm.setFailureFatal(True)
         
         # order task
@@ -109,11 +110,11 @@ class TaskManager(object):
         task.addOrderSequenceHead(sArm)
 
         # ****difference of vehicle and devices, begin****
-        ONE_SIDE_SLOT_NUM = 3
+        ONE_SIDE_SLOT_NUM = 4
         if vehicle.getType() == VehicleType.XD_LOADER:
             ONE_SIDE_SLOT_NUM = 6
         elif vehicle.getType() == VehicleType.XD_UNLOADER:
-            ONE_SIDE_SLOT_NUM = 3
+            ONE_SIDE_SLOT_NUM = 4
 
         from_str = 'from'
         to_str = 'to'
@@ -266,9 +267,8 @@ class TaskManager(object):
         sTrans.setIntendedVehicle(vehicle.getName())
         sTrans.setFailureFatal(True)
         sArm = OrderSequenceHead()
-        sArm.setCategory('ARM_card')
         # Use machine name
-        # sArm.setCategory(evt.getMachineName())
+        sArm.setCategory(evt.getMachineName())
         sArm.setFailureFatal(True)
         
         # order task
@@ -386,8 +386,8 @@ class TaskManager(object):
 
         t = TransportOrder()
         t.setIntendedVehicle(vehicle.getName())
-        leftDoorDI = '14'
-        rightDoorDI = '15'
+        leftDoorDI = '9'
+        rightDoorDI = '10'
         t.addDestination('Location_WD_Left', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'true'))
         t.addDestination('Location_WD_Left', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'false'))
@@ -399,7 +399,7 @@ class TaskManager(object):
         t.addDestination('Location_WD_Right', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'true'))
         t.addDestination('Location_WD_Right', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(rightDoorDI, 'false'))
-        t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '5000'))
+        t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '15000'))
         t.addDestination('Location_WD_Inside', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'true'))
         t.addDestination('Location_WD_Inside', 'Wait', TransportOrder.createProterty('duration', '2000'))
         t.addDestination('Location_WD_Left', 'SetDO', TransportOrder.createProterty(leftDoorDI, 'false'))
